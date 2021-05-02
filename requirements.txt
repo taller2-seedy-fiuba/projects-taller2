@@ -3,5 +3,4 @@ flask_sqlalchemy
 flask_restx
 flask_cors
 youconfigme
-unittest
 gunicorn
