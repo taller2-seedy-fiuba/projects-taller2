@@ -1,3 +1,9 @@
 build:
   docker:
     web: Dockerfile
+release:
+  image: web
+  command:
+    - python projects/manage.py db upgrade
+run:
+        web: gunicorn -w 2 --bind 0.0.0.0:$PORT "projects.app:create_app()"

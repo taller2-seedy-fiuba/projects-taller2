@@ -1,0 +1,30 @@
+version: '3.7'
+services:
+    projects_postgres:
+        container_name: projects_postgres 
+        image: postgres:11.9
+        environment:
+          - POSTGRES_USER=projects
+          - POSTGRES_PASSWORD=projects
+          - POSTGRES_DB=projects
+          - PGDATA=/var/lib/postgresql/data/pgdata
+        ports:
+          - 54321:5432
+        volumes:
+          - /var/lib/postgresql/data/pgdata
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+    projects_api:
+      container_name: projects_api
+      depends_on:
+        - projects_postgres
+      build:
+        context: ../
+        dockerfile: Dockerfile
+      ports:
+        - "5000:5000"
+      environment:
+        - DATABASE_URL=postgresql://projects:projects@projects_postgres/projects
+      entrypoint: docker-compose/api-entrypoint.sh

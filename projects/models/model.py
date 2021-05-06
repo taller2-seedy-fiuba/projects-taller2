@@ -34,7 +34,7 @@ class Type(DB.Model):
     """Types of projects."""
 
     id = DB.Column(DB.Integer, primary_key=True)
-    type = DB.Column(DB.String)
+    name = DB.Column(DB.String)
     project_id = DB.Column(DB.Integer, DB.ForeignKey("project.id"), nullable=False)
 
 

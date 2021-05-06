@@ -1,6 +1,5 @@
-FROM python:3.9.4
+FROM python:3.7.9
+RUN apt-get update && apt-get install -y postgresql-client
 ADD . .
 RUN pip install -r requirements.txt
-RUN pip install gunicorn
 EXPOSE 5000
-CMD ["gunicorn", "-w", "2", "--bind", "0.0.0.0:$PORT"]
