@@ -4,3 +4,7 @@ flask_restx
 flask_cors
 youconfigme
 gunicorn
+sqlalchemy_utils
+flask_migrate
+flask_script
+psycopg2

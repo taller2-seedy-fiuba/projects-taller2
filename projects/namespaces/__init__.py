@@ -1,1 +1,1 @@
-from projects.namespaces.default.namespace import ns as default_namespace
+from projects.namespaces.project_ns.project import ns as default_namespace

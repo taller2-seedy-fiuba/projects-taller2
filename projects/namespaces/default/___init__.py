@@ -1,1 +1,0 @@
-from projects.namespaces.default.namespace import ns
