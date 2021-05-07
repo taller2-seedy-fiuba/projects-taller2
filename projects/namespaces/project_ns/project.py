@@ -3,7 +3,7 @@ from datetime import datetime
 
 from flask_restx import Namespace, Resource
 
-from projects.models.model import Project, DB, Image, Hashtag, Type
+from projects.model import Project, DB, Image, Hashtag, Type
 
 from projects.namespaces.project_ns.models import new_project_model, type_model, image_model, hashtag_model
 

@@ -5,7 +5,7 @@ from flask import Flask
 from flask_migrate import Migrate, MigrateCommand
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
-from projects.models.model import DB
+from projects.model import DB
 from projects.cfg import config
 from projects.api import api
 from flask_script import Manager
@@ -20,7 +20,7 @@ def create_app(test_db=None):
     new_app.config["ERROR_404_HELP"] = False
     DB.init_app(new_app)
     api.init_app(new_app)
-    Migrate(new_app, DB)
+    Migrate(new_app, DB, directory=Path(__file__).parent / "migrations")
     new_app.wsgi_app = ProxyFix(
         new_app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1
     )  # remove after flask-restx > 0.2.0 is released
