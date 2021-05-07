@@ -33,7 +33,7 @@ new_project_model = Model(
      "hashtags": fields.List(fields.Nested(hashtag_model), description="List of hashtags related to project."),
      "types": fields.List(fields.Nested(type_model),required=False, description="Type of project"), #TODO: revisar que tipos
      "images" : fields.List(fields.Nested(image_model),required=False, description="List of images URLs"),
-     "end_date" : fields.DateTime(required=False, description="Date when project ends"),
+     "end_date" : fields.Date(required=False, description="Date when project ends"),
      "location" : fields.String(required=False, description="Project location.")
     }
 )

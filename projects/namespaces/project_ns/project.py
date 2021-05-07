@@ -20,7 +20,7 @@ class ProjectsResource(Resource):
     @ns.doc('create_project')
     @ns.marshal_with(new_project_model)
     @ns.expect(new_project_model)
-    def put(self):
+    def post(self):
         """Create a new project"""
         data = ns.payload
         images = []
