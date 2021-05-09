@@ -18,7 +18,7 @@ class Project(DB.Model):
     images = DB.relationship("Image", backref="project", lazy=True)
     end_date = DB.Column(DB.DateTime)
     location = DB.Column(DB.String) #revisar formato
-    user_id = DB.Column(DB.Integer)
+    user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
     #TODO: Revisar otros.
 
