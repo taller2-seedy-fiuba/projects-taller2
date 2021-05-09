@@ -7,7 +7,6 @@ authors = ["JCaceres2 <julieta.a.caceres@tsgforce.com>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 Flask = "^1.1.2"
-flask-restx = "^0.3.0"
 Flask-Cors = "^3.0.10"
 youconfigme = "^0.6.14"
 gunicorn = "^20.1.0"
@@ -16,6 +15,7 @@ Flask-Script = "^2.0.6"
 psycopg2-binary = "^2.8.6"
 Flask-Migrate = "^2.7.0"
 SQLAlchemy = "<1.4.0"
+flask-restx = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
