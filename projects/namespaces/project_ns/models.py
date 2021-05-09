@@ -28,7 +28,9 @@ type_model = Model(
 
 new_project_model = Model(
     "Project model",
-    {"title": fields.String(required=True, description="Project title."),
+    {
+    "id": fields.Integer(readonly=True, description="Id for this type"),
+    "title": fields.String(required=True, description="Project title."),
      "description": fields.String(required=True, description="Project Description"),
      "hashtags": fields.List(fields.Nested(hashtag_model), description="List of hashtags related to project."),
      "types": fields.List(fields.Nested(type_model),required=False, description="Type of project"), #TODO: revisar que tipos
