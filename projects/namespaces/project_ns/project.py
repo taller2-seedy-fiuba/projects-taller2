@@ -59,3 +59,18 @@ class ProjectsResource(Resource):
 
         query = Project.query 
         return query.all()
+    
+    @ns.doc('get_projects_by_user_id')
+    @ns.marshal_list_with(new_project_model)
+    def get_by_user_id(self, user_id):
+        """Get all projects"""
+        query = Project.query.filter(Project.user_id == user_id).first()
+        return query
+    
+    @ns.doc('get_projects_by_project_id')
+    @ns.marshal_list_with(new_project_model)
+    def get_by_project_id(self, project_id):
+        """Get all projects"""
+
+        query = Project.query.filter(Project.id == project_id)
+        return query
