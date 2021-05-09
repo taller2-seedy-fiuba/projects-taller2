@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-api = Api(prefix="", version=__version__, validate=True)
+api = Api(prefix="/v1", version=__version__, validate=True)
 api.add_namespace(default_namespace, path='/projects')
 
 
