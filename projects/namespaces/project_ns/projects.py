@@ -38,14 +38,9 @@ class ProjectsResource(Resource):
             DB.session.add(new_hash)
         data["hashtags"] = hashtags
 
-        types = []
-        for type_data in data["types"]:
-            new_type = Type(**type_data)
-            types.append(new_type)
-            DB.session.add(new_type)
-        data["types"] = types
-
         data["end_date"] = datetime.strptime(data["end_date"], "%Y-%m-%d")
+
+        data["creation_date"] = datetime.strptime(data["creation_date"], "%Y-%m-%d")
 
 
         new_project = Project(**data)
