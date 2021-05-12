@@ -14,12 +14,14 @@ class Project(DB.Model):
     title = DB.Column(DB.String)
     description = DB.Column(DB.String)
     hashtags = DB.relationship("Hashtag", backref="project", lazy=True)
-    types = DB.relationship("Type", backref="project", lazy=True)
+    project_type = DB.Column(DB.String)
     images = DB.relationship("Image", backref="project", lazy=True)
     end_date = DB.Column(DB.DateTime)
     location = DB.Column(DB.String) #revisar formato
     user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
+    state = DB.Column(DB.String)
+    creation_date = DB.Column(DB.DateTime)
     #TODO: Revisar otros.
 
 
@@ -36,7 +38,6 @@ class Type(DB.Model):
 
     id = DB.Column(DB.Integer, primary_key=True)
     name = DB.Column(DB.String)
-    project_id = DB.Column(DB.Integer, DB.ForeignKey("project.id"), nullable=False)
 
 
 class Image(DB.Model):
