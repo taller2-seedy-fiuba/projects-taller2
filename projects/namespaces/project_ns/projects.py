@@ -55,16 +55,7 @@ class ProjectsResource(Resource):
         query = Project.query 
         return query.all()
 
-@api.route('/<user_id>')
-@api.param('user_id', 'The user unique identifier')
-class ProjectsByUserIdResource(Resource):
-    """Projects by User Id"""
-    @api.doc(params={'user_id': 'An ID'})
-    @api.marshal_list_with(new_project_model)
-    def get(self, user_id):
-        """Filter and get project by user id"""
-        query = Project.query.filter(Project.user_id == user_id).all()
-        return query
+
 
 
 @api.route("/<int:project_id>")

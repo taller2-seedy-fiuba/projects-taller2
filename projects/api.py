@@ -6,6 +6,7 @@ from flask_restx import Api
 from projects import __version__
 
 from projects.namespaces.project_ns.projects import api as project_namespace
+from projects.namespaces.users_ns.users import api as users_namespace
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -13,7 +14,7 @@ logger.setLevel(logging.INFO)
 
 api = Api(prefix="/v1", version=__version__, validate=True)
 api.add_namespace(project_namespace, path='/projects')
-#api.add_namespace(projecgit stt_namespace, path='/projects/{user_id}')
+api.add_namespace(users_namespace, path='/users')
 
 
 @api.errorhandler
