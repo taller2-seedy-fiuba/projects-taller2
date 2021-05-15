@@ -39,6 +39,8 @@ class ProjectsResource(Resource):
 
         data["end_date"] = datetime.strptime(data["end_date"], "%Y-%m-%d")
 
+        data["creation_date"] = datetime.strptime(data["creation_date"], "%Y-%m-%d")
+
 
         new_project = Project(**data)
         DB.session.add(new_project)
