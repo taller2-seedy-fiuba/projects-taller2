@@ -1,6 +1,6 @@
 """Project namespace."""
 from datetime import datetime
-from projects.model import Project, DB, Image, Hashtag, Type
+from projects.model import Project, DB, Image, Hashtag
 
 from flask_restx import Namespace, Resource
 
@@ -14,7 +14,6 @@ api = Namespace("Projects", description="CRUD operations for projects.")
 api.models[new_project_model.name] = new_project_model
 api.models[image_model.name] = image_model
 api.models[hashtag_model.name] = hashtag_model
-api.models[type_model.name] = type_model
 
 @api.route('')
 class ProjectsResource(Resource):
@@ -37,13 +36,6 @@ class ProjectsResource(Resource):
             hashtags.append(new_hash)
             DB.session.add(new_hash)
         data["hashtags"] = hashtags
-
-        types = []
-        for type_data in data["types"]:
-            new_type = Type(**type_data)
-            types.append(new_type)
-            DB.session.add(new_type)
-        data["types"] = types
 
         data["end_date"] = datetime.strptime(data["end_date"], "%Y-%m-%d")
 
