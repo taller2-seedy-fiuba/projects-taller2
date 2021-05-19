@@ -1,6 +1,6 @@
 """Project namespace."""
 from datetime import datetime
-from projects.model import Project, DB, Image, Hashtag, Type
+from projects.model import Project, DB, Image, Hashtag
 
 from flask_restx import Namespace, Resource
 
@@ -14,7 +14,6 @@ api = Namespace("Projects", description="CRUD operations for projects.")
 api.models[new_project_model.name] = new_project_model
 api.models[image_model.name] = image_model
 api.models[hashtag_model.name] = hashtag_model
-api.models[type_model.name] = type_model
 
 @api.route('')
 class ProjectsResource(Resource):
@@ -56,16 +55,7 @@ class ProjectsResource(Resource):
         query = Project.query 
         return query.all()
 
-@api.route('/<user_id>')
-@api.param('user_id', 'The user unique identifier')
-class ProjectsByUserIdResource(Resource):
-    """Projects by User Id"""
-    @api.doc(params={'user_id': 'An ID'})
-    @api.marshal_list_with(new_project_model)
-    def get(self, user_id):
-        """Filter and get project by user id"""
-        query = Project.query.filter(Project.user_id == user_id).all()
-        return query
+
 
 
 @api.route("/<int:project_id>")
