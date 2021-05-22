@@ -20,7 +20,7 @@ class Project(DB.Model):
     location = DB.Column(DB.String) #revisar formato
     user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
-    state = DB.Column(DB.String)
+    status = DB.Column(DB.String)
     creation_date = DB.Column(DB.DateTime)
     #TODO: Revisar otros.
 
@@ -31,13 +31,6 @@ class Hashtag(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
     name = DB.Column(DB.String)
     project_id = DB.Column(DB.Integer, DB.ForeignKey('project.id'))
-
-
-class Type(DB.Model):
-    """Types of projects."""
-
-    id = DB.Column(DB.Integer, primary_key=True)
-    name = DB.Column(DB.String)
 
 
 class Image(DB.Model):
