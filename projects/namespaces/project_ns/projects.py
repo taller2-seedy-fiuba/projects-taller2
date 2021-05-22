@@ -1,23 +1,25 @@
 """Project api."""
-
+import json
 from datetime import datetime
 from projects.model import Project, DB, Image, Hashtag
 
-from flask_restx import Namespace, Resource, reqparse
-
-from flask_restx import Model, fields
-
-from projects.namespaces.project_ns.models import new_project_model, type_model, image_model, hashtag_model
+from flask_restx import Namespace, Resource, reqparse, marshal
+from projects.namespaces.project_ns.models import *
 
 from projects.namespaces.utils.project_query_params import ProjectQueryParams
+from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound
+
 api = Namespace("Projects", description="CRUD operations for projects.")
 
 api.models[new_project_model.name] = new_project_model
 api.models[image_model.name] = image_model
 api.models[hashtag_model.name] = hashtag_model
+api.models[project_not_found_model.name] = project_not_found_model
 
 query_params = ProjectQueryParams()
 query_params.add_arguments()
+
+
 
 @api.route('')
 class ProjectsResource(Resource):
@@ -52,15 +54,28 @@ class ProjectsResource(Resource):
         return new_project
 
     @api.doc('get_projects')
-    @api.marshal_list_with(new_project_model)
+    @api.response(model=new_project_model, code=200, description="Used without pagination")
+    @api.response(model=get_pagination_model, code=200, description="Used with pagination")
     @api.expect(query_params.projects_parser)
     def get(self):
         """Get all projects"""
         params = query_params.projects_parser.parse_args()
         query = Project.query
-        for param_name, filter_op in params.items():
-            query = filter_op.apply(query, Project )
-        return query.all()
+        if params:
+            if "project_type" in params.keys():
+                query = query.filter(Project.project_type == params['project_type'] )
+            elif 'status' in params.keys():
+                query = query.filter(Project.status == params['status'])
+            elif not params["page"] and not params["page_size"]:
+                raise ParamDoesNotAllowedException("Invalid param")
+            if params["page"] and params["page_size"]:
+                page = query.paginate(page=params["page"], per_page=params["page_size"])
+                data = {
+                    'has_next': page.has_next,
+                    'projects': page.items
+                    }
+                return marshal(data, get_pagination_model) ,200
+        return marshal(query.all(), new_project_model) , 200
 
 
 
@@ -68,6 +83,8 @@ class ProjectsResource(Resource):
   
 
 @api.route("/<int:project_id>")
+@api.response(model=new_project_model, code=200, description="Get project by id successfully")
+@api.response(model=project_not_found_model, code=404, description="No project by that id was found")
 @api.param('project_id', 'The project unique identifier')
 class ProjectsByProjectIdResource(Resource):
     @api.doc('get_projects_by_project_id')
@@ -75,7 +92,16 @@ class ProjectsByProjectIdResource(Resource):
     def get(self, project_id):
         """Get Project by Id"""
 
-        query = Project.query.filter(Project.id == project_id).all()
-        return query
+        project = Project.query.filter(Project.id == project_id).first()
+        if not project:
+            raise ProjectNotFound("Project not found") 
+        return project
+
+
+@api.errorhandler(ProjectNotFound)
+def handle_blocked_publication_questions(_exception):
+    """Handle project not found exception."""
+    return {'message': "No project by that id was found."}, 404
+
 
 
