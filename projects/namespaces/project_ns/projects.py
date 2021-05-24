@@ -25,13 +25,14 @@ query_params.add_arguments()
 @api.route('')
 class ProjectsResource(Resource):
     @api.doc('create_project')
-    @api.marshal_with(new_project_model)
+    @api.marshal_with(created_project_model)
     @api.expect(new_project_model)
     def post(self):
         """Create a new project"""
         data = api.payload
         images = []
         for img_data in data["images"]:
+            img_data = {"url": img_data}
             new_img = Image(**img_data)
             images.append(new_img)
             DB.session.add(new_img)
@@ -39,6 +40,7 @@ class ProjectsResource(Resource):
         
         videos = []
         for video_data in data["videos"]:
+            video_data = {"url": video_data}
             new_video = Video(**video_data)
             videos.append(new_video)
             DB.session.add(new_video)

@@ -23,8 +23,26 @@ hashtag_model = Model(
         "id": fields.Integer(readonly=True, description="Id for this hashtag"),
     },
 )
-
 new_project_model = Model(
+    "Project model",
+    {
+    "id": fields.Integer(readonly=True, description="Id for this type"),
+    "title": fields.String(required=True, description="Project title."),
+     "description": fields.String(required=True, description="Project Description"),
+     "hashtags": fields.List(fields.Nested(hashtag_model), description="List of hashtags related to project."),
+     "project_type": fields.String(required=False, description="Type of project"), #TODO: revisar que tipos
+     "images" : fields.List(fields.String,required=False, description="List of images URLs"),
+     "videos" : fields.List(fields.String,required=False, description="List of videos URLs"),
+     "end_date" : fields.Date(required=False, description="Date when project ends"),
+     "location" : fields.String(required=False, description="Project location."),
+     "user_id" : fields.String(required=True, description="Owner of project"),
+     "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
+     "creation_date" : fields.Date(required=False, description="Creation date"),
+     "status" : fields.String(required=False, description="Project status")
+    }
+)
+
+created_project_model = Model(
     "Project model",
     {
     "id": fields.Integer(readonly=True, description="Id for this type"),
