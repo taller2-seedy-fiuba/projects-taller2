@@ -1,18 +1,19 @@
 """Project namespace."""
 from datetime import datetime
-from projects.model import Project, DB, Image, Hashtag
+from projects.model import Project, DB, Image, Hashtag, Video
 
 from flask_restx import Namespace, Resource
 
 from flask_restx import Model, fields
 
-from projects.namespaces.project_ns.models import new_project_model, type_model, image_model, hashtag_model
+from projects.namespaces.project_ns.models import *
 
 
 api = Namespace("Projects", description="CRUD operations for projects.")
 
 api.models[new_project_model.name] = new_project_model
 api.models[image_model.name] = image_model
+api.models[video_model.name] = video_model
 api.models[hashtag_model.name] = hashtag_model
 
 @api.route('')
@@ -29,6 +30,13 @@ class ProjectsResource(Resource):
             images.append(new_img)
             DB.session.add(new_img)
         data["images"] = images
+        
+        videos = []
+        for video_data in data["videos"]:
+            new_video = Video(**video_data)
+            videos.append(new_video)
+            DB.session.add(new_video)
+        data["videos"] = videos
 
         hashtags = []
         for hashtag_data in data["hashtags"]:
