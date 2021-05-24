@@ -43,3 +43,18 @@ new_project_model = Model(
     }
 )
 
+get_pagination_model = Model(
+    "Get projects with pagination model",
+    {
+     "projects" : fields.List(fields.Nested(new_project_model)),
+     "has_next" : fields.Boolean()
+    }
+)
+
+project_not_found_model = Model(
+    "Error message for not found",
+    {
+     "message" : fields.String(required=True, description="Error message for project not found")
+    }
+)
+
