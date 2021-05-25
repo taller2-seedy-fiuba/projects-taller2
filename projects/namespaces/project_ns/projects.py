@@ -76,9 +76,9 @@ class ProjectsResource(Resource):
                 query = query.filter(Project.project_type == params['project_type'] )
             elif 'status' in params.keys():
                 query = query.filter(Project.status == params['status'])
-            elif not params["page"] and not params["page_size"]:
+            elif "page" not in params.keys() and not "page_size" not in params.keys():
                 raise ParamDoesNotAllowedException("Invalid param")
-            if params["page"] and params["page_size"]:
+            if "page" in params.keys() and "page_size" in params.keys():
                 page = query.paginate(page=params["page"], per_page=params["page_size"])
                 data = {
                     'has_next': page.has_next,
