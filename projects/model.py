@@ -16,6 +16,7 @@ class Project(DB.Model):
     hashtags = DB.relationship("Hashtag", backref="project", lazy=True)
     project_type = DB.Column(DB.String)
     images = DB.relationship("Image", backref="project", lazy=True)
+    videos = DB.relationship("Video", backref="project", lazy=True)
     end_date = DB.Column(DB.DateTime)
     location = DB.Column(DB.String) #revisar formato
     user_id = DB.Column(DB.String)
@@ -34,6 +35,13 @@ class Hashtag(DB.Model):
 
 
 class Image(DB.Model):
+    """Images for projects."""
+
+    id = DB.Column(UUIDType(binary=False), primary_key=True, default=uuid4)
+    url = DB.Column(DB.String, nullable=False)
+    project_id = DB.Column(DB.Integer, DB.ForeignKey("project.id"), nullable=False)
+
+class Video(DB.Model):
     """Images for projects."""
 
     id = DB.Column(UUIDType(binary=False), primary_key=True, default=uuid4)
