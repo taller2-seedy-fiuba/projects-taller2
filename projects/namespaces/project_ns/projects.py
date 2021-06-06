@@ -101,10 +101,11 @@ class ProjectsByProjectIdResource(Resource):
     @api.doc('get_projects_by_project_id')
     def get(self, project_id):
         """Get Project by Id"""
-
-        project = marshal(Project.query.filter(Project.id == project_id).first(), created_project_model)
-        if not project:
+        result = Project.query.filter(Project.id == project_id).first()
+        if not result:
             raise ProjectNotFound("Project not found") 
+        project = marshal(result, created_project_model)
+
         return from_projects_to_projectDtos([project])
 
 
