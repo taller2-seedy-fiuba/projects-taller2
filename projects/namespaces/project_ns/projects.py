@@ -7,6 +7,8 @@ from flask_restx import Namespace, Resource, reqparse, marshal
 from projects.namespaces.project_ns.models import *
 
 from projects.namespaces.utils.project_query_params import ProjectQueryParams
+from projects.namespaces.utils.mapper import from_projects_to_projectDtos
+
 from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound
 
 api = Namespace("Projects", description="CRUD operations for projects.")
@@ -31,16 +33,16 @@ class ProjectsResource(Resource):
         """Create a new project"""
         data = api.payload
         images = []
-        for img_data in data["images"]:
-            img_data = {"url": img_data}
+        for img_url in data["images"]:
+            img_data = {"url": img_url}
             new_img = Image(**img_data)
             images.append(new_img)
             DB.session.add(new_img)
         data["images"] = images
         
         videos = []
-        for video_data in data["videos"]:
-            video_data = {"url": video_data}
+        for video_url in data["videos"]:
+            video_data = {"url": video_url}
             new_video = Video(**video_data)
             videos.append(new_video)
             DB.session.add(new_video)
@@ -80,16 +82,15 @@ class ProjectsResource(Resource):
                 raise ParamDoesNotAllowedException("Invalid param")
             if "page" in params.keys() and "page_size" in params.keys():
                 page = query.paginate(page=params["page"], per_page=params["page_size"])
+                projects = from_projects_to_projectDtos(marshal(page.items, created_project_model))
                 data = {
                     'has_next': page.has_next,
-                    'projects': page.items
+                    'projects': projects
                     }
                 return marshal(data, get_pagination_model) ,200
-        return marshal(query.all(), new_project_model) , 200
-
-
-
-
+        result = marshal(query.all(), created_project_model)
+        projects = from_projects_to_projectDtos(result)
+        return marshal(projects, new_project_model) , 200
   
 
 @api.route("/<int:project_id>")
@@ -98,14 +99,13 @@ class ProjectsResource(Resource):
 @api.param('project_id', 'The project unique identifier')
 class ProjectsByProjectIdResource(Resource):
     @api.doc('get_projects_by_project_id')
-    @api.marshal_list_with(new_project_model)
     def get(self, project_id):
         """Get Project by Id"""
 
-        project = Project.query.filter(Project.id == project_id).first()
+        project = marshal(Project.query.filter(Project.id == project_id).first(), created_project_model)
         if not project:
             raise ProjectNotFound("Project not found") 
-        return project
+        return from_projects_to_projectDtos([project])
 
 
 @api.errorhandler(ProjectNotFound)
