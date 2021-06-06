@@ -103,17 +103,11 @@ class ProjectsByProjectIdResource(Resource):
         """Get Project by Id"""
         result = Project.query.filter(Project.id == project_id).first()
         if not result:
-            raise ProjectNotFound("No project by that id was found.") 
+            return {'message': "No project by that id was found."}, 404
         project = marshal(result, created_project_model)
 
         return from_projects_to_projectDtos([project])
 
-
-@api.errorhandler(ProjectNotFound)
-@api.marshal_with(project_not_found_model, code=404)
-def handle_blocked_publication_questions(error):
-    """Handle project not found exception."""
-    return {'message': error.message}, 404
 
 
 
