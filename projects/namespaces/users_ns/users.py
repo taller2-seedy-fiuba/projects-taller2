@@ -2,7 +2,7 @@
 from datetime import datetime
 from projects.model import Project, DB, Image, Hashtag
 
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace, Resource,  marshal
 
 from flask_restx import Model, fields
 
