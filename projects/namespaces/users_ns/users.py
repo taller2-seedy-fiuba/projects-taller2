@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource,  marshal
 
 from flask_restx import Model, fields
 
-from projects.namespaces.project_ns.models import new_project_model
+from projects.namespaces.project_ns.models import new_project_model, created_project_model
 from projects.namespaces.utils.project_query_params import ProjectQueryParams
 from projects.namespaces.utils.mapper import from_projects_to_projectDtos
 
