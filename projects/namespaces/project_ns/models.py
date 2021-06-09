@@ -1,7 +1,7 @@
 """Default namespace models module."""
 
 from flask_restx import Model, fields
-from projects.namespaces.overseer_ns.model import overseer_assigned_model
+from projects.namespaces.overseer_ns.models import overseer_assigned_model
 
 
 image_model = Model(

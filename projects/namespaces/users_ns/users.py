@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource
 
 from flask_restx import Model, fields
 
-from projects.namespaces.users_ns.user_models import get_user_project_model
+from projects.namespaces.users_ns.models import get_user_project_model
 from projects.namespaces.project_ns.models import project_get_model
 
 from projects.namespaces.utils.project_query_params import ProjectQueryParams

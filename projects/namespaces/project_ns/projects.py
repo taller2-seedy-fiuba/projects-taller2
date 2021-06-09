@@ -7,7 +7,7 @@ from flask_restx import Namespace, Resource, reqparse, marshal
 from projects.namespaces.project_ns.models import *
 
 from projects.namespaces.utils.project_query_params import ProjectQueryParams
-from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound
+from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound, OverseerNotFound
 
 api = Namespace("Projects", description="CRUD operations for projects.")
 
@@ -89,13 +89,10 @@ class ProjectsResource(Resource):
                 return marshal(data, project_get_pagination_model) ,200
         return marshal(query.all(), project_get_model) , 200
 
-
-
-
   
 
 @api.route("/<int:project_id>")
-@api.response(model=new_project_model, code=200, description="Get project by id successfully")
+@api.response(model=project_get_model, code=200, description="Get project by id successfully")
 @api.response(model=project_not_found_model, code=404, description="No project by that id was found")
 @api.param('project_id', 'The project unique identifier')
 class ProjectsByProjectIdResource(Resource):

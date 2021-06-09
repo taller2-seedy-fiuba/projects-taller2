@@ -6,3 +6,6 @@ class ParamDoesNotAllowedException(Exception):
 
 class ProjectNotFound(Exception):
     pass
+
+class OverseerNotFound(Exception):
+    pass

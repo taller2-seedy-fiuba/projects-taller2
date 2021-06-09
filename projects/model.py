@@ -1,6 +1,6 @@
 """Models for database used in projects."""
 from uuid import uuid4
-
+from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import UUIDType
 
@@ -62,7 +62,10 @@ class Video(DB.Model):
     url = DB.Column(DB.String, nullable=False)
     project_id = DB.Column(DB.Integer, DB.ForeignKey("project.id"), nullable=False)
 
-
+class AssignedStatus(Enum):
+    pending,
+    confirmed,
+    rejected
 
 class Overseer(DB.Model):
     __tablename__ = 'overseer'
@@ -74,3 +77,4 @@ class Overseer(DB.Model):
         secondary=association_table,
         back_populates="overseers")
     confirmed = DB.Column(DB.Boolean, default=False)
+    assigned_status = DB.Column(DB.Enum(AssignedStatus))

@@ -3,9 +3,11 @@
 from flask_restx import Namespace, Resource
 
 from flask_restx import Model, fields, marshal
-from projects.namespaces.overseer_ns.model import assign_overseer_model, overseer_assigned_model
-from projects.model import Project, Overseer, DB
-from projects.exceptions import ProjectNotFound
+from projects.namespaces.overseer_ns.models import assign_overseer_model, overseer_assigned_model
+from projects.namespaces.project_ns.models import project_not_found_model, project_get_model
+from projects.model import Project, Overseer, DB, AssignedStatus
+from projects.exceptions import ProjectNotFound, OverseerNotFound
+
 
 api = Namespace("Overseer", description="Get projects assigned to Overseer.")
 
@@ -13,31 +15,66 @@ api.models[overseer_assigned_model.name] = overseer_assigned_model
 api.models[assign_overseer_model.name] = assign_overseer_model
 
 
-@api.route('/<user_id>/projects')
-@api.param('user_id', 'The id of Overseer to be assigned')
-class OverseerResource(Resource):
+@api.route('/<user_id>/projects/<int:project_id>')
+@api.param('project_id', 'The project unique identifier')
+@api.param('user_id', 'The overseer unique identifier')
+class AssignOverseerResource(Resource):
     
     @api.doc('Assign Overseer to Project ')
+    @api.response(model=overseer_assigned_model, code=200, description="Overseer was assigned successfully")
+    @api.response(model=project_not_found_model, code=404, description="No project by that id was found")
     @api.expect(assign_overseer_model)
-    def put(self, user_id):
+    def put(self, user_id, project_id):
         """Assign Overseer to project"""
         data = api.payload
-        project = Project.query.filter(Project.id == data['project_id']).first()
+        project = Project.query.filter(Project.id == project_id).first()
         if project is None:
             raise ProjectNotFound
-        overseer = Overseer.query.filter(Overseer.id == data['user_id']).first()
+        overseer = Overseer.query.filter(Overseer.id == user_id).first()
         if overseer is None:
-            overseer = Overseer(id=data['user_id'])
-        overseer.projects.append(project)
+            overseer = Overseer(id=user_id)
+        if data["confirmed"]:
+            overseer.assigned_status = AssignedStatus.confirmed
+            overseer.projects.append(project)
+        else:
+            overseer.assigned_status = AssignedStatus.rejected
         DB.session.add(overseer)
         DB.session.commit()
 
-        return marshal(overseer, overseer_assigned_model)
+        return marshal(overseer, overseer_assigned_model), 200
+
+@api.route('/<user_id>/projects')
+@api.doc('Get all projects in which Overseer is assigned.')
+@api.response(model=project_get_model, code=200, description="Projects assigned to overseer")
+@api.response(model=project_get_model, code=204, description="The overseer has not projects assigned")
+@api.response(model=project_get_model, code=404, description="No Oversser by that id was found")
+@api.param('user_id', 'The overseer unique identifier')
+class OverseerResource(Resource):
+
+    @api.doc('Get projects in which user is Overseer')
+    def get(self, user_id):
+        """Get all projects assigned to overseer"""
+        data = api.payload
+        overseer = Overseer.query.filter(Overseer.id == user_id).first()
+        if overseer is None:
+            raise OverseerNotFound
+        projects = overseer.projects
+        if not projects:
+            return projects, 204
+        return marshal(projects, project_get_model), 200
+
 
 @api.errorhandler(ProjectNotFound)
 def handle_ProjectNotFound(_exception):
     """Handle project not found exception."""
     return {'message': "No project by that id was found."}, 404
+
+@api.errorhandler(OverseerNotFound)
+def handle_ProjectNotFound(_exception):
+    """Handle Overseer not found exception."""
+    return {'message': "No overseer by that id was found."}, 404
+
+
 
 
 
