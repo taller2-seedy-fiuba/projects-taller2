@@ -1,6 +1,8 @@
 """Default namespace models module."""
 
 from flask_restx import Model, fields
+from projects.namespaces.overseer_ns.model import overseer_assigned_model
+
 
 image_model = Model(
        "Project Image",
@@ -26,7 +28,6 @@ hashtag_model = Model(
 new_project_model = Model(
     "Project model",
     {
-    "id": fields.Integer(readonly=True, description="Id for this type"),
     "title": fields.String(required=True, description="Project title."),
      "description": fields.String(required=True, description="Project Description"),
      "hashtags": fields.List(fields.Nested(hashtag_model), description="List of hashtags related to project."),
@@ -38,33 +39,18 @@ new_project_model = Model(
      "user_id" : fields.String(required=True, description="Owner of project"),
      "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
      "creation_date" : fields.Date(required=False, description="Creation date"),
-     "status" : fields.String(required=False, description="Project status")
+     "status" : fields.String(required=False, description="Project status"),
     }
 )
 
-created_project_model = Model(
-    "Project model",
-    {
+project_get_model = Model.inherit('Project get Dto', new_project_model, {
     "id": fields.Integer(readonly=True, description="Id for this type"),
-    "title": fields.String(required=True, description="Project title."),
-     "description": fields.String(required=True, description="Project Description"),
-     "hashtags": fields.List(fields.Nested(hashtag_model), description="List of hashtags related to project."),
-     "project_type": fields.String(required=False, description="Type of project"), #TODO: revisar que tipos
-     "images" : fields.List(fields.Nested(image_model),required=False, description="List of images URLs"),
-     "videos" : fields.List(fields.Nested(video_model),required=False, description="List of videos URLs"),
-     "end_date" : fields.Date(required=False, description="Date when project ends"),
-     "location" : fields.String(required=False, description="Project location."),
-     "user_id" : fields.String(required=True, description="Owner of project"),
-     "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
-     "creation_date" : fields.Date(required=False, description="Creation date"),
-     "status" : fields.String(required=False, description="Project status")
-    }
-)
+    "overseers" : fields.List(fields.Nested(overseer_assigned_model))
+} )
 
-get_pagination_model = Model(
-    "Get projects with pagination model",
-    {
-     "projects" : fields.List(fields.Nested(new_project_model)),
+
+project_get_pagination_model = Model.inherit(
+    "Get projects with pagination model", project_get_model, {
      "has_next" : fields.Boolean()
     }
 )
