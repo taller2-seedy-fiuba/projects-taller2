@@ -77,4 +77,4 @@ class Overseer(DB.Model):
         secondary=association_table,
         back_populates="overseers")
     confirmed = DB.Column(DB.Boolean, default=False)
-    assigned_status = DB.Column(DB.Enum(AssignedStatus), default=AssignedStatus.pending)
+    assigned_status = DB.Column(DB.Enum(AssignedStatus, name="assigned_status"), default=AssignedStatus.pending)
