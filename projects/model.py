@@ -63,9 +63,9 @@ class Video(DB.Model):
     project_id = DB.Column(DB.Integer, DB.ForeignKey("project.id"), nullable=False)
 
 class AssignedStatus(Enum):
-    pending,
-    confirmed,
-    rejected
+    pending = 1,
+    confirmed = 2,
+    rejected = 3
 
 class Overseer(DB.Model):
     __tablename__ = 'overseer'
@@ -77,4 +77,4 @@ class Overseer(DB.Model):
         secondary=association_table,
         back_populates="overseers")
     confirmed = DB.Column(DB.Boolean, default=False)
-    assigned_status = DB.Column(DB.Enum(AssignedStatus))
+    assigned_status = DB.Column(DB.Enum(AssignedStatus), default=AssignedStatus.pending)

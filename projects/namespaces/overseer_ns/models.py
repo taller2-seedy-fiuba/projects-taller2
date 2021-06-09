@@ -13,7 +13,7 @@ overseer_assigned_model = Model(
        "overseer assigned project",
     {
         "id": fields.String(description="Id of Overseer"),
-        "id_project": fields.String(description="Id of project")
         "confirmed": fields.Boolean(description="Overseer accept or reject the assign"),
+        "assigned_status": fields.String(description="Status in project")
     }
 )

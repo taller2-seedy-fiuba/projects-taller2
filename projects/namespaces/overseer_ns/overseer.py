@@ -34,6 +34,7 @@ class AssignOverseerResource(Resource):
         if overseer is None:
             overseer = Overseer(id=user_id)
         if data["confirmed"]:
+            overseer.confirmed = True
             overseer.assigned_status = AssignedStatus.confirmed
             overseer.projects.append(project)
         else:
