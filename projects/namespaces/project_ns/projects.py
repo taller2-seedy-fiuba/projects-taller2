@@ -7,13 +7,15 @@ from flask_restx import Namespace, Resource, reqparse, marshal
 from projects.namespaces.project_ns.models import *
 
 from projects.namespaces.utils.project_query_params import ProjectQueryParams
-from projects.namespaces.utils.mapper import from_projects_to_projectDtos
+from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound, OverseerNotFound
 
 from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound
 
 api = Namespace("Projects", description="CRUD operations for projects.")
 
 api.models[new_project_model.name] = new_project_model
+api.models[project_get_model.name] = project_get_model
+api.models[project_get_pagination_model.name] = project_get_pagination_model
 api.models[image_model.name] = image_model
 api.models[video_model.name] = video_model
 api.models[hashtag_model.name] = hashtag_model
@@ -27,7 +29,7 @@ query_params.add_arguments()
 @api.route('')
 class ProjectsResource(Resource):
     @api.doc('create_project')
-    @api.marshal_with(created_project_model)
+    @api.marshal_with(project_get_model)
     @api.expect(new_project_model)
     def post(self):
         """Create a new project"""
@@ -66,8 +68,8 @@ class ProjectsResource(Resource):
         return new_project
 
     @api.doc('get_projects')
-    @api.response(model=new_project_model, code=200, description="Used without pagination")
-    @api.response(model=get_pagination_model, code=200, description="Used with pagination")
+    @api.response(model=project_get_model, code=200, description="Used without pagination")
+    @api.response(model=project_get_pagination_model, code=200, description="Used with pagination")
     @api.expect(query_params.projects_parser)
     def get(self):
         """Get all projects"""
@@ -87,27 +89,31 @@ class ProjectsResource(Resource):
                     'has_next': page.has_next,
                     'projects': projects
                     }
-                return marshal(data, get_pagination_model) ,200
-        result = marshal(query.all(), created_project_model)
-        projects = from_projects_to_projectDtos(result)
-        return marshal(projects, new_project_model) , 200
+                return marshal(data, project_get_pagination_model) ,200
+        return marshal(query.all(), project_get_model) , 200
+
   
 
 @api.route("/<int:project_id>")
-@api.response(model=new_project_model, code=200, description="Get project by id successfully")
+@api.response(model=project_get_model, code=200, description="Get project by id successfully")
 @api.response(model=project_not_found_model, code=404, description="No project by that id was found")
 @api.param('project_id', 'The project unique identifier')
 class ProjectsByProjectIdResource(Resource):
     @api.doc('get_projects_by_project_id')
+    @api.marshal_list_with(project_get_model)
     def get(self, project_id):
         """Get Project by Id"""
         result = Project.query.filter(Project.id == project_id).first()
         if not result:
             return {'message': "No project by that id was found."}, 404
-        project = marshal(result, created_project_model)
+        project = marshal(result, project_get_model)
 
-        return from_projects_to_projectDtos([project])
+        return project, 200
 
+@api.errorhandler(ProjectNotFound)
+def handle_ProjectNotFound(_exception):
+    """Handle project not found exception."""
+    return {'message': "No project by that id was found."}, 404
 
 
 

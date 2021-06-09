@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource,  marshal
 
 from flask_restx import Model, fields
 
-from projects.namespaces.project_ns.models import new_project_model, created_project_model
+from projects.namespaces.project_ns.models import new_project_model, project_get_model
 from projects.namespaces.utils.project_query_params import ProjectQueryParams
 from projects.namespaces.utils.mapper import from_projects_to_projectDtos
 
@@ -18,14 +18,13 @@ query_params = ProjectQueryParams()
 query_params.add_arguments()
 
 @api.route('/<user_id>/projects')
-@api.response(model=new_project_model, code=200, description="Projects related to User Id")
+@api.response(model=project_get_model, code=200, description="Projects related to User Id")
 @api.param('user_id', 'The user unique identifier')
 class ProjectsByUserIdResource(Resource):
     """Projects by User Id"""
     @api.doc(params={'user_id': 'An ID'})
     def get(self, user_id):
         """Filter and get project by user id"""
-        result = marshal(Project.query.filter(Project.user_id == user_id).all(), created_project_model)
-        projects = from_projects_to_projectDtos(result)       
-        return marshal(projects, new_project_model) , 200
+        projects = Project.query.filter(Project.user_id == user_id).all()
+        return marshal(projects, project_get_model) , 200
 

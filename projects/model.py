@@ -1,14 +1,20 @@
 """Models for database used in projects."""
 from uuid import uuid4
-
+from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import UUIDType
 
 
 DB = SQLAlchemy()
 
+association_table = DB.Table('project_overseer_association', DB.Model.metadata,
+    DB.Column('project_id', DB.Integer, DB.ForeignKey('project.id')),
+    DB.Column('overseer_id', DB.String, DB.ForeignKey('overseer.id'))
+)
 
 class Project(DB.Model):
+    __tablename__ = 'project'
+
     """Projects models."""
     id = DB.Column(DB.Integer, primary_key=True)
     title = DB.Column(DB.String)
@@ -17,6 +23,10 @@ class Project(DB.Model):
     project_type = DB.Column(DB.String)
     images = DB.relationship("Image", backref="project", lazy=True)
     videos = DB.relationship("Video", backref="project", lazy=True)
+    overseers = DB.relationship(
+        "Overseer",
+        secondary=association_table,
+        back_populates="projects")
     end_date = DB.Column(DB.DateTime)
     location = DB.Column(DB.String) #revisar formato
     user_id = DB.Column(DB.String)
@@ -24,6 +34,10 @@ class Project(DB.Model):
     status = DB.Column(DB.String)
     creation_date = DB.Column(DB.DateTime)
     #TODO: Revisar otros.
+
+    def update_from_dict(self, **kwargs):
+        for field, value in kwargs.items():
+            setattr(self, field, value)
 
 
 class Hashtag(DB.Model):
@@ -47,3 +61,20 @@ class Video(DB.Model):
     id = DB.Column(UUIDType(binary=False), primary_key=True, default=uuid4)
     url = DB.Column(DB.String, nullable=False)
     project_id = DB.Column(DB.Integer, DB.ForeignKey("project.id"), nullable=False)
+
+class AssignedStatus(Enum):
+    pending = 1,
+    confirmed = 2,
+    rejected = 3
+
+class Overseer(DB.Model):
+    __tablename__ = 'overseer'
+
+    """Overseers asigned to projects."""
+    id = DB.Column(DB.String, primary_key=True)
+    projects = DB.relationship(
+        "Project",
+        secondary=association_table,
+        back_populates="overseers")
+    confirmed = DB.Column(DB.Boolean, default=False)
+    assigned_status = DB.Column(DB.Enum(AssignedStatus, name="assigned_status"), default=AssignedStatus.pending)
