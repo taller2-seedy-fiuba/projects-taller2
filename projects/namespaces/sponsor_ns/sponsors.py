@@ -35,7 +35,7 @@ class AssignSponsorResource(Resource):
         DB.session.add(sponsor)
         DB.session.commit()
         result = marshal(sponsor, sponsor_assigned_model)
-        result.project_id = project.id
+        result['project_id'] = project.id
         return result, 200
 
 @api.route('/<user_id>/projects')
