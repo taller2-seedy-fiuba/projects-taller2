@@ -7,9 +7,14 @@ from sqlalchemy_utils import UUIDType
 
 DB = SQLAlchemy()
 
-association_table = DB.Table('project_overseer_association', DB.Model.metadata,
+project_overseer_association_table = DB.Table('project_overseer_association', DB.Model.metadata,
     DB.Column('project_id', DB.Integer, DB.ForeignKey('project.id')),
     DB.Column('overseer_id', DB.String, DB.ForeignKey('overseer.id'))
+)
+
+project_sponsor_association_table = DB.Table('project_sponsor_association', DB.Model.metadata,
+    DB.Column('project_id', DB.Integer, DB.ForeignKey('project.id')),
+    DB.Column('sponsor_id', DB.String, DB.ForeignKey('sponsor.id'))
 )
 
 class Project(DB.Model):
@@ -25,8 +30,16 @@ class Project(DB.Model):
     videos = DB.relationship("Video", backref="project", lazy=True)
     overseers = DB.relationship(
         "Overseer",
-        secondary=association_table,
+        secondary=project_overseer_association_table,
         back_populates="projects")
+    sponsors = DB.relationship(
+        "Sponsor",
+        secondary=project_sponsor_association_table,
+        back_populates="projects")
+    favs = DB.relationship(
+        "Sponsor",
+        secondary=project_sponsor_association_table,
+        back_populates="favorites")
     end_date = DB.Column(DB.DateTime)
     location = DB.Column(DB.String) #revisar formato
     user_id = DB.Column(DB.String)
@@ -74,7 +87,19 @@ class Overseer(DB.Model):
     id = DB.Column(DB.String, primary_key=True)
     projects = DB.relationship(
         "Project",
-        secondary=association_table,
+        secondary=project_overseer_association_table,
         back_populates="overseers")
     confirmed = DB.Column(DB.Boolean, default=False)
     assigned_status = DB.Column(DB.Enum(AssignedStatus, name="assigned_status"), default=AssignedStatus.pending)
+
+class Sponsor(DB.Model):
+    "Sponsor assigned to projects"
+    id = DB.Column(DB.String, primary_key=True)
+    projects = DB.relationship(
+        "Project",
+        secondary=project_sponsor_association_table,
+        back_populates="sponsors")
+    favorites = DB.relationship(
+        "Project",
+        secondary=project_sponsor_association_table,
+        back_populates="favs")

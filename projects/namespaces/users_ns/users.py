@@ -26,5 +26,19 @@ class ProjectsByUserIdResource(Resource):
     def get(self, user_id):
         """Filter and get project by user id"""
         projects = Project.query.filter(Project.user_id == user_id).all()
-        return marshal(projects, project_get_model) , 200
+        result = marshal(projects, project_get_model)
+        projects_final = []
+        for project in projects:
+            url_images = []
+            for image in project.images:
+                url_images.append(image.url)
+            project_dto = marshal(project, project_get_model)
+            project_dto['images'] = url_images
+            projects_final.append(project_dto)
+        for i, project in enumerate(projects):
+            url_videos = []
+            for video in project.videos:
+                url_videos.append(video.url)
+            projects_final[i]['videos'] = url_videos
+        return projects_final , 200
 

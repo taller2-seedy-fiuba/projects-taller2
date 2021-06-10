@@ -2,6 +2,7 @@
 
 from flask_restx import Model, fields
 from projects.namespaces.overseer_ns.models import overseer_assigned_model
+from projects.namespaces.sponsor_ns.models import sponsor_model
 
 
 image_model = Model(
@@ -45,7 +46,9 @@ new_project_model = Model(
 
 project_get_model = Model.inherit('Project get Dto', new_project_model, {
     "id": fields.Integer(readonly=True, description="Id for this type"),
-    "overseers" : fields.List(fields.Nested(overseer_assigned_model))
+    "overseers" : fields.List(fields.Nested(overseer_assigned_model)),
+    "sponsors" : fields.List(fields.Nested(sponsor_model))
+
 } )
 
 

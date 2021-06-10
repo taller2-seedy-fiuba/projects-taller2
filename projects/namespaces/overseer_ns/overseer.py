@@ -62,7 +62,20 @@ class OverseerResource(Resource):
         projects = overseer.projects
         if not projects:
             return projects, 204
-        return marshal(projects, project_get_model), 200
+        projects_final = []
+        for project in projects:
+            url_images = []
+            for image in project.images:
+                url_images.append(image.url)
+            project_dto = marshal(project, project_get_model)
+            project_dto['images'] = url_images
+            projects_final.append(project_dto)
+        for i, project in enumerate(projects):
+            url_videos = []
+            for video in project.videos:
+                url_videos.append(video.url)
+            projects_final[i]['videos'] = url_videos
+        return projects_final, 200
 
 
 @api.errorhandler(ProjectNotFound)
