@@ -11,3 +11,6 @@ class ProjectNotFound(Exception):
 
 class OverseerNotFound(Exception):
     pass
+
+class SponsorNotFound(Exception):
+    pass

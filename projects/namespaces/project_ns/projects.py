@@ -84,13 +84,42 @@ class ProjectsResource(Resource):
                 raise ParamDoesNotAllowedException("Invalid param")
             if "page" in params.keys() and "page_size" in params.keys():
                 page = query.paginate(page=params["page"], per_page=params["page_size"])
-                projects = from_projects_to_projectDtos(marshal(page.items, created_project_model))
+                projects = page.items
+                projects_images =[]
+                for project in projects:
+                    url_images = []
+                    for image in project['images']:
+                        url_images.append(image['url'])
+                    project['images'] = url_images
+                    projects_images.append(project)
+                projects_final = []
+                for project in projects_images:
+                    url_videos = []
+                    for video in project['videos']:
+                        url_videos.append(video['url'])
+                    project['videos'] = url_videos
+                    projects_final.append(project)
+                projects = marshal(projects_final, project_get_model)
                 data = {
                     'has_next': page.has_next,
                     'projects': projects
                     }
-                return marshal(data, project_get_pagination_model) ,200
-        return marshal(query.all(), project_get_model) , 200
+            return marshal(data, project_get_pagination_model) ,200
+        projects = query.all()
+        projects_final = []
+        for project in projects:
+            url_images = []
+            for image in project.images:
+                url_images.append(image.url)
+            project_dto = marshal(project, project_get_model)
+            project_dto['images'] = url_images
+            projects_final.append(project_dto)
+        for i, project in enumerate(projects):
+            url_videos = []
+            for video in project.videos:
+                url_videos.append(video.url)
+            projects_final[i]['videos'] = url_videos
+        return projects_final , 200
 
   
 
@@ -107,7 +136,14 @@ class ProjectsByProjectIdResource(Resource):
         if not result:
             return {'message': "No project by that id was found."}, 404
         project = marshal(result, project_get_model)
-
+        images_url = []
+        for image in result.images:
+            images_url.append(image.url)
+        videos_url = []
+        for video in result.videos:
+            videos_url.append(video.url)
+        project['images'] = images_url
+        project['videos'] = videos_url
         return project, 200
 
 @api.errorhandler(ProjectNotFound)

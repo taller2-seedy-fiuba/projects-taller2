@@ -8,6 +8,7 @@ from projects import __version__
 from projects.namespaces.project_ns.projects import api as project_namespace
 from projects.namespaces.users_ns.users import api as users_namespace
 from projects.namespaces.overseer_ns.overseer import api as overseer_namespace
+from projects.namespaces.sponsor_ns.sponsors import api as sponsor_namespace
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -17,6 +18,7 @@ api = Api(prefix="/v1", version=__version__, validate=True)
 api.add_namespace(project_namespace, path='/projects')
 api.add_namespace(users_namespace, path='/users')
 api.add_namespace(overseer_namespace, path='/overseer')
+api.add_namespace(sponsor_namespace, path='/sponsor')
 
 
 @api.errorhandler
