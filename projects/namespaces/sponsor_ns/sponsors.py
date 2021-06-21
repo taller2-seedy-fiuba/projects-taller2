@@ -42,7 +42,7 @@ class AssignSponsorResource(Resource):
 @api.doc('Get all projects in which Sponsor is assigned.')
 @api.response(model=project_get_model, code=200, description="Projects assigned to Sponsor")
 @api.response(model=project_get_model, code=204, description="The Sponsor has not projects assigned")
-@api.response(model=project_get_model, code=404, description="No Sponsor by that id was found")
+@api.response(model=project_not_found_model, code=404, description="No Sponsor by that id was found")
 @api.param('user_id', 'The Sponsor unique identifier')
 class SponsorResource(Resource):
 
@@ -52,7 +52,7 @@ class SponsorResource(Resource):
         data = api.payload
         sponsor = Sponsor.query.filter(Sponsor.id == user_id).first()
         if sponsor is None:
-            raise SponsorNotFound
+            return marshal({'message': "No Sponsor by that id was found."}, project_not_found_model ), 404
         projects = sponsor.projects
         if not projects:
             return projects, 204
