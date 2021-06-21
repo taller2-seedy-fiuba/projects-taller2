@@ -86,23 +86,22 @@ class ProjectsResource(Resource):
                 page = query.paginate(page=params["page"], per_page=params["page_size"])
                 projects = page.items
                 projects_images =[]
+                projects_final = []
                 for project in projects:
                     url_images = []
-                    for image in project['images']:
-                        url_images.append(image['url'])
-                    project['images'] = url_images
-                    projects_images.append(project)
-                projects_final = []
-                for project in projects_images:
+                    for image in project.images:
+                        url_images.append(image.url)
+                    project_dto = marshal(project, project_get_model)
+                    project_dto['images'] = url_images
+                    projects_final.append(project_dto)
+                for i, project in enumerate(projects):
                     url_videos = []
-                    for video in project['videos']:
-                        url_videos.append(video['url'])
-                    project['videos'] = url_videos
-                    projects_final.append(project)
-                projects = marshal(projects_final, project_get_model)
+                    for video in project.videos:
+                        url_videos.append(video.url)
+                    projects_final[i]['videos'] = url_videos
                 data = {
                     'has_next': page.has_next,
-                    'projects': projects
+                    'projects': projects_final
                     }
             return marshal(data, project_get_pagination_model) ,200
         projects = query.all()

@@ -52,9 +52,10 @@ project_get_model = Model.inherit('Project get Dto', new_project_model, {
 } )
 
 
-project_get_pagination_model = Model.inherit(
-    "Get projects with pagination model", project_get_model, {
-     "has_next" : fields.Boolean()
+project_get_pagination_model = Model(
+    "Get projects with pagination model", {
+     "has_next" : fields.Boolean(),
+     "projects" : fields.List(fields.Nested(project_get_model))
     }
 )
 
