@@ -103,7 +103,7 @@ class ProjectsResource(Resource):
                     'has_next': page.has_next,
                     'projects': projects_final
                     }
-            return marshal(data, project_get_pagination_model) ,200
+                return marshal(data, project_get_pagination_model) ,200
         projects = query.all()
         projects_final = []
         for project in projects:
