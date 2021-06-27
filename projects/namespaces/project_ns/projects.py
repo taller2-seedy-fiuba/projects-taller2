@@ -51,7 +51,8 @@ class ProjectsResource(Resource):
         data["videos"] = videos
 
         hashtags = []
-        for hashtag_data in data["hashtags"]:
+        for hashtag in data["hashtags"]:
+            hashtag_data = {"name": hashtag}
             new_hash = Hashtag(**hashtag_data)
             hashtags.append(new_hash)
             DB.session.add(new_hash)
@@ -99,6 +100,11 @@ class ProjectsResource(Resource):
                     for video in project.videos:
                         url_videos.append(video.url)
                     projects_final[i]['videos'] = url_videos
+                for i, project in enumerate(projects):
+                    url_hashtags = []
+                    for hashtag in project.hashtags:
+                        url_hashtags.append(hashtag.name)
+                    projects_final[i]['hashtags'] = url_hashtags
                 data = {
                     'has_next': page.has_next,
                     'projects': projects_final
@@ -118,6 +124,11 @@ class ProjectsResource(Resource):
             for video in project.videos:
                 url_videos.append(video.url)
             projects_final[i]['videos'] = url_videos
+        for i, project in enumerate(projects):
+            url_hashtags = []
+            for hashtag in project.hashtags:
+                url_hashtags.append(hashtag.name)
+                projects_final[i]['hashtags'] = url_hashtags     
         return projects_final , 200
 
   
@@ -128,12 +139,11 @@ class ProjectsResource(Resource):
 @api.param('project_id', 'The project unique identifier')
 class ProjectsByProjectIdResource(Resource):
     @api.doc('get_projects_by_project_id')
-    @api.marshal_list_with(project_get_model)
     def get(self, project_id):
         """Get Project by Id"""
         result = Project.query.filter(Project.id == project_id).first()
         if not result:
-            return {'message': "No project by that id was found."}, 404
+            return marshal({'message': "No project by that id was found."}, project_not_found_model), 404
         project = marshal(result, project_get_model)
         images_url = []
         for image in result.images:
@@ -145,10 +155,36 @@ class ProjectsByProjectIdResource(Resource):
         project['videos'] = videos_url
         return project, 200
 
-@api.errorhandler(ProjectNotFound)
-def handle_ProjectNotFound(_exception):
-    """Handle project not found exception."""
-    return {'message': "No project by that id was found."}, 404
+    @api.response(model=project_get_model, code=200, description="Get project by id successfully")
+    @api.response(model=project_not_found_model, code=404, description="No project by that id was found")
+    @api.expect(new_project_model)
+    def put(self, project_id):
+            project = Project.query.filter(Project.id == project_id).first()
+            if not project:
+                return marshal({'message': "No project by that id was found."}, project_not_found_model), 404
+            data = api.payload
+
+            project.title = data['title']
+            project.description = data['description']
+
+            project.end_date = datetime.strptime(data["end_date"], "%Y-%m-%d")
+            project.location = data['location']       
+            project.status = data['status'] 
 
 
-
+            DB.session.add(project)
+            DB.session.commit()
+            result = marshal(project, project_get_model)
+            images_url = []
+            for image in project.images:
+                images_url.append(image.url)
+            videos_url = []
+            for video in project.videos:
+                videos_url.append(video.url)
+            hashtag_url = []
+            for hashtag in project.hashtags:
+                hashtag_url.append(hashtag.name)
+            result['hashtags'] = images_url    
+            result['images'] = images_url
+            result['videos'] = videos_url
+            return result, 200           

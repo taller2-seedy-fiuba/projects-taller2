@@ -31,7 +31,7 @@ new_project_model = Model(
     {
     "title": fields.String(required=True, description="Project title."),
      "description": fields.String(required=True, description="Project Description"),
-     "hashtags": fields.List(fields.Nested(hashtag_model), description="List of hashtags related to project."),
+     "hashtags": fields.List(fields.String,required=False, description="List of hashtags related to project."),
      "project_type": fields.String(required=False, description="Type of project"), #TODO: revisar que tipos
      "images" : fields.List(fields.String,required=False, description="List of images URLs"),
      "videos" : fields.List(fields.String,required=False, description="List of videos URLs"),
@@ -43,6 +43,10 @@ new_project_model = Model(
      "status" : fields.String(required=False, description="Project status"),
     }
 )
+
+project_put_model = Model.inherit('Project put Dto', new_project_model, {
+    "id": fields.Integer(readonly=True, description="Id for this type")
+} )
 
 project_get_model = Model.inherit('Project get Dto', new_project_model, {
     "id": fields.Integer(readonly=True, description="Id for this type"),
