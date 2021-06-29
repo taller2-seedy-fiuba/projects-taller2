@@ -17,6 +17,12 @@ project_sponsor_association_table = DB.Table('project_sponsor_association', DB.M
     DB.Column('sponsor_id', DB.String, DB.ForeignKey('sponsor.id'))
 )
 
+class ProjectStatus(Enum):
+    initialized = 1,
+    in_progres = 2,
+    ended = 3,
+    pending = 4
+
 class Project(DB.Model):
     __tablename__ = 'project'
 
@@ -44,14 +50,22 @@ class Project(DB.Model):
     location = DB.Column(DB.String) #revisar formato
     user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
-    status = DB.Column(DB.String)
+    status = DB.Column(DB.Enum(ProjectStatus, name="project_status"), default=ProjectStatus.initialized)
     creation_date = DB.Column(DB.DateTime)
+    stages = DB.relationship("Stage", backref="project", lazy=True)
     #TODO: Revisar otros.
 
     def update_from_dict(self, **kwargs):
         for field, value in kwargs.items():
             setattr(self, field, value)
 
+class Stage(DB.Model):
+    id = DB.Column(DB.Integer, primary_key=True)
+    name = DB.Column(DB.String)
+    status = DB.Column(DB.Enum(ProjectStatus, name="stage_status"), default=ProjectStatus.pending)
+    budget = DB.Column(DB.BigInteger)
+    project_id = DB.Column(DB.Integer, DB.ForeignKey('project.id'))
+    number = DB.Column(DB.Integer)
 
 class Hashtag(DB.Model):
     """Hashtags related with the project"""
