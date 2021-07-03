@@ -25,7 +25,7 @@ def upgrade():
                             geometry_type='POINT',
                             srid=4326,
                             from_text='ST_GeogFromText',
-                            name='geography',
+                            name='geometry',
                             ),
                         nullable=True),
     sa.Column('project_id', sa.Integer(), nullable=True),
