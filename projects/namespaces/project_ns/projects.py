@@ -1,7 +1,7 @@
 """Project api."""
 import json
 from datetime import datetime
-from projects.model import Project, DB, Image, Hashtag, Video
+from projects.model import Project, DB, Image, Hashtag, Video, Stage, ProjectStatus
 
 from flask_restx import Namespace, Resource, reqparse, marshal
 from projects.namespaces.project_ns.models import *
@@ -20,6 +20,8 @@ api.models[image_model.name] = image_model
 api.models[video_model.name] = video_model
 api.models[hashtag_model.name] = hashtag_model
 api.models[project_not_found_model.name] = project_not_found_model
+api.models[new_stage_model.name] = new_stage_model
+
 
 query_params = ProjectQueryParams()
 query_params.add_arguments()
@@ -62,6 +64,13 @@ class ProjectsResource(Resource):
 
         data["creation_date"] = datetime.strptime(data["creation_date"], "%Y-%m-%d")
 
+        stages = []
+        for stage in data["stages"]:
+            new_stage = Stage(**stage)
+            stages.append(new_stage)
+            DB.session.add(new_stage)
+
+        data['stages'] = stages
 
         new_project = Project(**data)
         DB.session.add(new_project)
@@ -129,7 +138,7 @@ class ProjectsResource(Resource):
             for hashtag in project.hashtags:
                 url_hashtags.append(hashtag.name)
                 projects_final[i]['hashtags'] = url_hashtags     
-        return projects_final , 200
+        return marshal(projects_final, project_get_model) , 200
 
   
 
@@ -151,8 +160,12 @@ class ProjectsByProjectIdResource(Resource):
         videos_url = []
         for video in result.videos:
             videos_url.append(video.url)
+        hashtags_name = []
+        for hashtag in result.hashtags:
+            hashtags_name.append(hashtag.name)
         project['images'] = images_url
         project['videos'] = videos_url
+        project['hashtags'] = hashtags_name
         return project, 200
 
     @api.response(model=project_get_model, code=200, description="Get project by id successfully")
@@ -171,7 +184,66 @@ class ProjectsByProjectIdResource(Resource):
             project.location = data['location']       
             project.status = data['status'] 
 
+            for image in project.images:
+                DB.session.delete(image)
 
+            images = []
+            for img_url in data["images"]:
+                img_data = {
+                    "url": img_url,
+                    "project_id": project.id
+                }
+                new_img = Image(**img_data)
+                images.append(new_img)
+                DB.session.add(new_img)
+            data["images"] = images
+            project.images = images
+
+            for video in project.videos:
+                DB.session.delete(video)
+
+            videos = []
+            for video_url in data["videos"]:
+                video_data = {
+                    "url": video_url,
+                    "project_id": project.id
+                }
+                new_video = Video(**video_data)
+                videos.append(new_video)
+                DB.session.add(new_video)
+            data["videos"] = videos
+            project.videos = videos
+
+            for hashtag in project.hashtags:
+                DB.session.delete(hashtag)
+
+            hashtags = []
+            for hashtag in data["hashtags"]:
+                hashtag = {
+                    "name": hashtag,
+                    "project_id": project.id
+                }
+                new_hashtag = Hashtag(**hashtag)
+                hashtags.append(new_hashtag)
+                DB.session.add(new_hashtag)
+            data["hashtags"] = hashtags
+            project.hashtags = hashtags
+
+
+            stages = []
+            for stage in data["stages"]:
+                stage = {
+                    "name": stage['name'],
+                    "project_id": project.id,
+                    "status" : ProjectStatus.pending,
+                    "budget" : stage['budget'],
+                    "number" : stage['number']
+                }
+                new_stage = Stage(**stage)
+                stages.append(new_stage)
+                DB.session.add(new_stage)
+            data["stages"] = stages
+            project.stages = stages
             DB.session.add(project)
             DB.session.commit()
             result = marshal(project, project_get_model)

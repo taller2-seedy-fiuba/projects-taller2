@@ -26,6 +26,17 @@ hashtag_model = Model(
         "id": fields.Integer(readonly=True, description="Id for this hashtag"),
     },
 )
+
+
+new_stage_model = Model(
+       "Stages of the project",
+    {
+        "name" : fields.String(required=True, description="Name of the stage"),
+        "budget" : fields.Integer(required=True, description="Budget needed for this stage"),
+        "number" : fields.Integer(required=True, description="Ordinal number of the stage")
+    },
+)
+
 new_project_model = Model(
     "Project model",
     {
@@ -40,7 +51,8 @@ new_project_model = Model(
      "user_id" : fields.String(required=True, description="Owner of project"),
      "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
      "creation_date" : fields.Date(required=False, description="Creation date"),
-     "status" : fields.String(required=False, description="Project status"),
+     "status" : fields.String(required=False, enum=["initialized", "pending", "in_progres", "ended"], description="Project status"),
+     "stages" : fields.List(fields.Nested(new_stage_model), required=True)
     }
 )
 
