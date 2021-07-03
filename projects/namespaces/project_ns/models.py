@@ -37,6 +37,15 @@ new_stage_model = Model(
     },
 )
 
+location_model = Model(
+    "Location of project Model",
+    {
+        "country" : fields.String(required=True, description="Country of project"),
+        "latitude": fields.Float(required=True, description="Latitude of project"),
+        "longitude": fields.Float(required=True, description="Longitude of project")
+    }
+)
+
 new_project_model = Model(
     "Project model",
     {
@@ -47,7 +56,7 @@ new_project_model = Model(
      "images" : fields.List(fields.String,required=False, description="List of images URLs"),
      "videos" : fields.List(fields.String,required=False, description="List of videos URLs"),
      "end_date" : fields.Date(required=False, description="Date when project ends"),
-     "location" : fields.String(required=False, description="Project location."),
+     "location" : fields.Nested(location_model, required=True),
      "user_id" : fields.String(required=True, description="Owner of project"),
      "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
      "creation_date" : fields.Date(required=False, description="Creation date"),

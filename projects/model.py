@@ -3,6 +3,8 @@ from uuid import uuid4
 from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import UUIDType
+from geoalchemy2 import Geometry
+
 
 
 DB = SQLAlchemy()
@@ -47,7 +49,7 @@ class Project(DB.Model):
         secondary=project_sponsor_association_table,
         back_populates="favorites")
     end_date = DB.Column(DB.DateTime)
-    location = DB.Column(DB.String) #revisar formato
+    location = DB.relationship('Location', backref='project', lazy=True)
     user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
     status = DB.Column(DB.Enum(ProjectStatus, name="project_status"), default=ProjectStatus.initialized)
@@ -58,6 +60,13 @@ class Project(DB.Model):
     def update_from_dict(self, **kwargs):
         for field, value in kwargs.items():
             setattr(self, field, value)
+
+class Location(DB.Model):
+    id = DB.Column(DB.Integer, primary_key=True)
+    country = DB.Column(DB.String)
+    point = DB.Column(Geometry(geometry_type='POINT', srid=4326))
+    project_id = DB.Column(DB.Integer, DB.ForeignKey('project.id'))
+    
 
 class Stage(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)

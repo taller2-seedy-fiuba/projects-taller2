@@ -1,7 +1,8 @@
 """Project api."""
 import json
 from datetime import datetime
-from projects.model import Project, DB, Image, Hashtag, Video, Stage, ProjectStatus
+from sqlalchemy import func
+from projects.model import Project, DB, Image, Hashtag, Video, Stage, ProjectStatus, Location
 
 from flask_restx import Namespace, Resource, reqparse, marshal
 from projects.namespaces.project_ns.models import *
@@ -21,6 +22,7 @@ api.models[video_model.name] = video_model
 api.models[hashtag_model.name] = hashtag_model
 api.models[project_not_found_model.name] = project_not_found_model
 api.models[new_stage_model.name] = new_stage_model
+api.models[location_model.name] = location_model
 
 
 query_params = ProjectQueryParams()
@@ -71,6 +73,14 @@ class ProjectsResource(Resource):
             DB.session.add(new_stage)
 
         data['stages'] = stages
+        point = f"POINT({data['location']['latitude']} {data['location']['longitude']})"
+        location_data = {
+            'country' : data['location']['country'],
+            'point': point
+        }
+        location = Location(**location_data)
+        data['location'] = location
+        DB.session.add(location)
 
         new_project = Project(**data)
         DB.session.add(new_project)
@@ -90,6 +100,8 @@ class ProjectsResource(Resource):
                 query = query.filter(Project.project_type == params['project_type'] )
             elif 'status' in params.keys():
                 query = query.filter(Project.status == params['status'])
+            elif 'center_x' in params.keys() and 'center_y' in params.keys() and 'radius' in params.keys():
+                query = query.filter(func.ST_PointInsideCircle(Project.location.point, params['center_x'], params['center_y'], params['radius']))
             elif "page" not in params.keys() and not "page_size" not in params.keys():
                 raise ParamDoesNotAllowedException("Invalid param")
             if "page" in params.keys() and "page_size" in params.keys():
@@ -244,6 +256,8 @@ class ProjectsByProjectIdResource(Resource):
                 DB.session.add(new_stage)
             data["stages"] = stages
             project.stages = stages
+
+
             DB.session.add(project)
             DB.session.commit()
             result = marshal(project, project_get_model)

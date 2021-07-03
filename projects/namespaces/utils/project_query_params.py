@@ -36,3 +36,21 @@ class ProjectQueryParams:
             help="Size of page",
             store_missing=False
         )  
+        self.projects_parser.add_argument(
+            "center_x",
+            type=float,
+            help="center longitude",
+            store_missing=False
+        )
+        self.projects_parser.add_argument(
+            "center_y",
+            type=float,
+            help="center latitude",
+            store_missing=False
+        )
+        self.projects_parser.add_argument(
+            "radius",
+            type=float,
+            help="serch radius",
+            store_missing=False
+        )
