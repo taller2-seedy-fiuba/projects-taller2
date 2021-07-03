@@ -138,7 +138,7 @@ class ProjectsResource(Resource):
             for hashtag in project.hashtags:
                 url_hashtags.append(hashtag.name)
                 projects_final[i]['hashtags'] = url_hashtags     
-        return projects_final , 200
+        return marshal(projects_final, project_get_model) , 200
 
   
 
