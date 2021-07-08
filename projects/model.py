@@ -3,11 +3,11 @@ from uuid import uuid4
 from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import UUIDType
-from geoalchemy2 import Geometry
+from geoalchemy2 import Geography
 
 
 
-DB = SQLAlchemy()
+DB = SQLAlchemy(session_options={"autoflush": False})
 
 project_overseer_association_table = DB.Table('project_overseer_association', DB.Model.metadata,
     DB.Column('project_id', DB.Integer, DB.ForeignKey('project.id')),
@@ -52,9 +52,10 @@ class Project(DB.Model):
     location = DB.relationship('Location', backref='project', lazy=True)
     user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
-    status = DB.Column(DB.Enum(ProjectStatus, name="project_status"), default=ProjectStatus.initialized)
+    status = DB.Column(DB.Enum(ProjectStatus), default=ProjectStatus.initialized.value)
     creation_date = DB.Column(DB.DateTime)
     stages = DB.relationship("Stage", backref="project", lazy=True)
+    wallet_id = DB.Column(DB.String)
     #TODO: Revisar otros.
 
     def update_from_dict(self, **kwargs):
@@ -64,7 +65,7 @@ class Project(DB.Model):
 class Location(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
     country = DB.Column(DB.String)
-    point = DB.Column(Geometry(geometry_type='POINT', srid=4326))
+    point = DB.Column(Geography(geometry_type='POINT', srid=4326))
     project_id = DB.Column(DB.Integer, DB.ForeignKey('project.id'))
     
 

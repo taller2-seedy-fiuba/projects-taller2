@@ -40,5 +40,20 @@ class ProjectsByUserIdResource(Resource):
             for video in project.videos:
                 url_videos.append(video.url)
             projects_final[i]['videos'] = url_videos
+        for i, project in enumerate(projects):
+            hashtags = []
+            for hashtag in project.hashtags:
+                hashtags.append(hashtag.name)
+            projects_final[i]['hashtags'] = hashtags
+        for i, project in enumerate(projects):
+            overseers = []
+            for overseer in project.overseers:
+                overseers.append(overseer.id)
+            projects_final[i]['overseers'] = overseers  
+        for i, project in enumerate(projects):
+            sponsors = []
+            for sponsor in project.sponsors:
+                sponsors.append(sponsor.id)
+            projects_final[i]['sponsors'] = sponsors                         
         return projects_final , 200
 

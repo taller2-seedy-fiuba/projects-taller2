@@ -2,7 +2,7 @@ version: '3.7'
 services:
     projects_postgres:
         container_name: projects_postgres 
-        image: postgres:11.9
+        image: postgis/postgis:11-2.5-alpine
         environment:
           - POSTGRES_USER=projects
           - POSTGRES_PASSWORD=projects
@@ -27,4 +27,4 @@ services:
         - "5000:5000"
       environment:
         - DATABASE_URL=postgresql://projects:projects@projects_postgres/projects
-      entrypoint: docker-compose/api-entrypoint.sh
+      entrypoint: /app/docker-compose/api-entrypoint.sh
