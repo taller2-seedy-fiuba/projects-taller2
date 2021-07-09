@@ -58,7 +58,7 @@ class OverseerResource(Resource):
         data = api.payload
         overseer = Overseer.query.filter(Overseer.id == user_id).first()
         if overseer is None:
-            return [], 204
+            return marshal([], project_get_model), 204
         projects = overseer.projects
         if not projects:
             return projects, 204

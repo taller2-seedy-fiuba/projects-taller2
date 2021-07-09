@@ -22,6 +22,7 @@ query_params.add_arguments()
 @api.param('user_id', 'The user unique identifier')
 class ProjectsByUserIdResource(Resource):
     """Projects by User Id"""
+    @api.marshal_list_with(project_get_model)
     @api.doc(params={'user_id': 'An ID'})
     def get(self, user_id):
         """Filter and get project by user id"""
