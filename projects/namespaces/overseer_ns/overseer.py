@@ -52,16 +52,17 @@ class AssignOverseerResource(Resource):
 @api.param('user_id', 'The overseer unique identifier')
 class OverseerResource(Resource):
 
+    @api.marshal_list_with(project_get_model)
     @api.doc('Get projects in which user is Overseer')
     def get(self, user_id):
         """Get all projects assigned to overseer"""
         data = api.payload
         overseer = Overseer.query.filter(Overseer.id == user_id).first()
-        if overseer is None:
-            return marshal([], project_get_model), 204
+        if not bool(overseer):
+            return marshal([], project_get_model) , 204
         projects = overseer.projects
-        if not projects:
-            return projects, 204
+        if not bool(projects):
+            return marshal([], project_get_model) , 204
         projects_final = []
         for project in projects:
             url_images = []
@@ -90,7 +91,7 @@ class OverseerResource(Resource):
             for sponsor in project.sponsors:
                 sponsors.append(sponsor.id)
             projects_final[i]['sponsors'] = sponsors                                          
-        return projects_final, 200
+        return marshal(projects_final, project_get_model) , 200
 
 
 @api.errorhandler(ProjectNotFound)
