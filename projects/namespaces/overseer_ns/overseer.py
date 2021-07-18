@@ -1,5 +1,6 @@
 """Overseer namespace."""
 
+import logging
 from flask_restx import Namespace, Resource
 
 from flask_restx import Model, fields, marshal
@@ -8,6 +9,8 @@ from projects.namespaces.project_ns.models import project_not_found_model, proje
 from projects.model import Project, Overseer, DB, AssignedStatus
 from projects.exceptions import ProjectNotFound, OverseerNotFound
 
+
+logging.basicConfig(level=logging.INFO)
 
 api = Namespace("Overseer", description="Get projects assigned to Overseer.")
 
@@ -29,6 +32,7 @@ class AssignOverseerResource(Resource):
         data = api.payload
         project = Project.query.filter(Project.id == project_id).first()
         if project is None:
+            api.logger.info(f"Project not found by id: {project_id}")
             raise ProjectNotFound
         overseer = Overseer.query.filter(Overseer.id == user_id).first()
         if overseer is None:
@@ -41,7 +45,7 @@ class AssignOverseerResource(Resource):
             overseer.assigned_status = AssignedStatus.rejected
         DB.session.add(overseer)
         DB.session.commit()
-
+        api.logger.info(f"Status: {overseer.assigned_status} confirmed")
         return marshal(overseer, overseer_assigned_model), 200
 
 @api.route('/<user_id>/projects')
@@ -59,9 +63,11 @@ class OverseerResource(Resource):
         data = api.payload
         overseer = Overseer.query.filter(Overseer.id == user_id).first()
         if not bool(overseer):
+            api.logger.info(f"Not projects assigned to overseer: {user_id}")
             return marshal([], project_get_model) , 204
         projects = overseer.projects
         if not bool(projects):
+            api.logger.info(f"Not projects assigned to overseer: {user_id}")
             return marshal([], project_get_model) , 204
         projects_final = []
         for project in projects:
@@ -90,7 +96,9 @@ class OverseerResource(Resource):
             sponsors = []
             for sponsor in project.sponsors:
                 sponsors.append(sponsor.id)
-            projects_final[i]['sponsors'] = sponsors                                          
+            projects_final[i]['sponsors'] = sponsors   
+        api.logger.info(f"Getting projects: {projects_final} for overseer: {user_id}")
+
         return marshal(projects_final, project_get_model) , 200
 
 

@@ -1,5 +1,6 @@
 """Project api."""
 import json
+import logging
 from datetime import datetime
 from sqlalchemy import func
 from projects.model import Project, DB, Image, Hashtag, Video, Stage, ProjectStatus, Location, Overseer
@@ -11,6 +12,8 @@ from projects.namespaces.utils.project_query_params import ProjectQueryParams
 from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound, OverseerNotFound
 
 from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound
+
+logging.basicConfig(level=logging.INFO)
 
 api = Namespace("Projects", description="CRUD operations for projects.")
 
@@ -97,6 +100,8 @@ class ProjectsResource(Resource):
         new_project = Project(**data)
         DB.session.add(new_project)
         DB.session.commit()
+        api.logger.info(f"Project created successfully")
+
         return new_project
 
     @api.doc('get_projects')
@@ -194,7 +199,8 @@ class ProjectsResource(Resource):
             sponsors = []
             for sponsor in project.sponsors:
                 sponsors.append(sponsor.id)
-            projects_final[i]['sponsors'] = sponsors               
+            projects_final[i]['sponsors'] = sponsors 
+        api.logger.info(f"Getting projects: {projects_final}")   
         return marshal(projects_final, project_get_model) , 200
 
   
@@ -209,6 +215,7 @@ class ProjectsByProjectIdResource(Resource):
         """Get Project by Id"""
         result = Project.query.filter(Project.id == project_id).first()
         if not result:
+            api.logger.info(f"No project by id {project_id}")
             return marshal({'message': "No project by that id was found."}, project_not_found_model), 404
         project = marshal(result, project_get_model)
         images_url = []
@@ -231,7 +238,7 @@ class ProjectsByProjectIdResource(Resource):
         project['hashtags'] = hashtags_name
         project['overseers'] = overseer_ids
         project['sponsors'] = sponsors_ids
-
+        api.logger.info(f"Getting project: {project}")
         return  marshal(project, project_get_model) , 200
 
     @api.response(model=project_get_model, code=200, description="Get project by id successfully")
@@ -334,4 +341,5 @@ class ProjectsByProjectIdResource(Resource):
             result['hashtags'] = images_url    
             result['images'] = images_url
             result['videos'] = videos_url
+            api.logger.info(f"Project: {project_id} updated")
             return result, 200           
