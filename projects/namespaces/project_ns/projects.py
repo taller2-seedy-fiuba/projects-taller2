@@ -116,7 +116,7 @@ class ProjectsResource(Resource):
             if "project_type" in params.keys():
                 query = query.filter( func.lower(Project.project_type) ==  func.lower(params['project_type']))
             elif 'status' in params.keys():
-                query = query.filter(func.lower(Project.status) == func.lower(params['status']))
+                query = query.filter(Project.status == params['status'])
             elif 'hashtag' in params.keys():
                 projects = []
                 hashtags = Hashtag.query.filter(func.lower(Hashtag.name) == func.lower(params['hashtag']))
