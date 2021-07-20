@@ -150,6 +150,12 @@ class ProjectsResource(Resource):
                     for sponsor in project.sponsors:
                         sponsors.append(sponsor.id)
                     projects_final[i]['sponsors'] = sponsors 
+                for i, project in enumerate(projects):
+                    for status in project.sponsors:
+                        sponsors.append(sponsor.id)
+                            projects_final[i]['sponsors'] = sponsors
+                for i, project in enumerate(projects):
+                    projects_final[i]['status'] = project.status.name                     
                 api.logger.info(f"Getting projects: {projects_final}")   
                 return marshal(projects_final, project_get_model) , 200
             elif 'center_x' in params.keys() and 'center_y' in params.keys() and 'radius' in params.keys():
@@ -195,7 +201,7 @@ class ProjectsResource(Resource):
                         url_videos.append(video.url)
                     projects_final[i]['videos'] = url_videos
                 for i, project in enumerate(projects):
-                    projects_final[i]['status'] = project.status.value                    
+                    projects_final[i]['status'] = project.status.name                    
                 for i, project in enumerate(projects):
                     url_hashtags = []
                     for hashtag in project.hashtags:
@@ -235,6 +241,8 @@ class ProjectsResource(Resource):
             for sponsor in project.sponsors:
                 sponsors.append(sponsor.id)
             projects_final[i]['sponsors'] = sponsors 
+        for i, project in enumerate(projects):
+            projects_final[i]['status'] = project.status.name  
         api.logger.info(f"Getting projects: {projects_final}")   
         return marshal(projects_final, project_get_model) , 200
 
