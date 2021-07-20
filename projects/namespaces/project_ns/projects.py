@@ -114,12 +114,12 @@ class ProjectsResource(Resource):
         query = Project.query
         if params:
             if "project_type" in params.keys():
-                query = query.filter(Project.project_type == params['project_type'] )
+                query = query.filter( func.lower(Project.project_type) ==  func.lower(params['project_type']))
             elif 'status' in params.keys():
-                query = query.filter(Project.status == params['status'])
+                query = query.filter(func.lower(Project.status) == func.lower(params['status']))
             elif 'hashtag' in params.keys():
                 projects = []
-                hashtags = Hashtag.query.filter(Hashtag.name == params['hashtag'])
+                hashtags = Hashtag.query.filter(func.lower(Hashtag.name) == func.lower(params['hashtag']))
                 for hashtag in hashtags:
                     projects.append(query.filter(Project.id == hashtag.project_id).first())
                 projects_final = []
