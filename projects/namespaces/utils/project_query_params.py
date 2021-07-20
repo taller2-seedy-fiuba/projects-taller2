@@ -23,7 +23,14 @@ class ProjectQueryParams:
             help="status of project",
             store_missing=False
         )
-            
+
+        self.projects_parser.add_argument(
+            "hashtag",
+            type=str,
+            help="Hashtag of project",
+            store_missing=False
+        ) 
+
         self.projects_parser.add_argument(
             "page",
             type=int,

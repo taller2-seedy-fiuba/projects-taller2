@@ -117,6 +117,41 @@ class ProjectsResource(Resource):
                 query = query.filter(Project.project_type == params['project_type'] )
             elif 'status' in params.keys():
                 query = query.filter(Project.status == params['status'])
+            elif 'hashtag' in params.keys():
+                projects = []
+                hashtags = Hashtag.query.filter(Hashtag.name == params['hashtag'])
+                for hashtag in hashtags:
+                    projects.append(query.filter(Project.id == hashtag.project_id).first())
+                projects_final = []
+                for project in projects:
+                    url_images = []
+                    for image in project.images:
+                        url_images.append(image.url)
+                    project_dto = marshal(project, project_get_model)
+                    project_dto['images'] = url_images
+                    projects_final.append(project_dto)
+                for i, project in enumerate(projects):
+                    url_videos = []
+                    for video in project.videos:
+                        url_videos.append(video.url)
+                    projects_final[i]['videos'] = url_videos
+                for i, project in enumerate(projects):
+                    url_hashtags = []
+                    for hashtag in project.hashtags:
+                        url_hashtags.append(hashtag.name)
+                    projects_final[i]['hashtags'] = url_hashtags     
+                for i, project in enumerate(projects):
+                    overseer_ids = []
+                    for overseer in project.overseers:
+                        overseer_ids.append(overseer.id)
+                    projects_final[i]['overseers'] = overseer_ids
+                for i, project in enumerate(projects):
+                    sponsors = []
+                    for sponsor in project.sponsors:
+                        sponsors.append(sponsor.id)
+                    projects_final[i]['sponsors'] = sponsors 
+                api.logger.info(f"Getting projects: {projects_final}")   
+                return marshal(projects_final, project_get_model) , 200
             elif 'center_x' in params.keys() and 'center_y' in params.keys() and 'radius' in params.keys():
                 locations = Location.query.filter(func.ST_PointInsideCircle(Location.point, params['center_x'], params['center_y'], params['radius']))
                 projects_id = [location.project_id for location in locations]
