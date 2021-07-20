@@ -153,7 +153,7 @@ class ProjectsResource(Resource):
                 for i, project in enumerate(projects):
                     for status in project.sponsors:
                         sponsors.append(sponsor.id)
-                            projects_final[i]['sponsors'] = sponsors
+                        projects_final[i]['sponsors'] = sponsors
                 for i, project in enumerate(projects):
                     projects_final[i]['status'] = project.status.name                     
                 api.logger.info(f"Getting projects: {projects_final}")   
