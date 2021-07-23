@@ -81,7 +81,9 @@ class ProjectsResource(Resource):
         point = f"POINT({data['location']['latitude']} {data['location']['longitude']})"
         location_data = {
             'country' : data['location']['country'],
-            'point': point
+            'point': point,
+            'lat': data['location']['latitude'],
+            'lon' : data['location']['longitude'],
         }
         location = Location(**location_data)
         data['location'] = [location]
@@ -156,7 +158,13 @@ class ProjectsResource(Resource):
                         projects_final[i]['sponsors'] = sponsors
                 for i, project in enumerate(projects):
                     projects_final[i]['status'] = project.status.name                     
-                api.logger.info(f"Getting projects: {projects_final}")   
+                api.logger.info(f"Getting projects: {projects_final}")
+                for i, project in enumerate(projects):
+                    location = Location.query.filter(Location.project_id == project.id).first()
+                    projects_final[i]['location'][0]['country'] =  location.country
+                    projects_final[i]['location'][0]['latitude'] =  location.lat
+                    projects_final[i]['location'][0]['longitude'] =  location.lon                   
+                api.logger.info(f"Getting projects: {projects_final}")      
                 return marshal(projects_final, project_get_model) , 200
             elif 'center_x' in params.keys() and 'center_y' in params.keys() and 'radius' in params.keys():
                 locations = Location.query.filter(func.ST_PointInsideCircle(Location.point, params['center_x'], params['center_y'], params['radius']))
@@ -179,7 +187,12 @@ class ProjectsResource(Resource):
                     url_hashtags = []
                     for hashtag in project.hashtags:
                         url_hashtags.append(hashtag.name)
-                        projects_final[i]['hashtags'] = url_hashtags     
+                        projects_final[i]['hashtags'] = url_hashtags  
+                for i, project in enumerate(projects):
+                    location = Location.query.filter(Location.project_id == project.id).first()
+                    projects_final[i]['location'][0]['country'] =  location.country
+                    projects_final[i]['location'][0]['latitude'] =  location.lat
+                    projects_final[i]['location'][0]['longitude'] =  location.lon                           
                 return marshal(projects_final, project_get_model) , 200            
             elif "page" not in params.keys() and not "page_size" not in params.keys():
                 raise ParamDoesNotAllowedException("Invalid param")
@@ -206,7 +219,12 @@ class ProjectsResource(Resource):
                     url_hashtags = []
                     for hashtag in project.hashtags:
                         url_hashtags.append(hashtag.name)
-                    projects_final[i]['hashtags'] = url_hashtags
+                        projects_final[i]['hashtags'] = url_hashtags
+                for i, project in enumerate(projects):
+                    location = Location.query.filter(Location.project_id == project.id).first()
+                    projects_final[i]['location'][0]['country'] =  location.country
+                    projects_final[i]['location'][0]['latitude'] =  location.lat
+                    projects_final[i]['location'][0]['longitude'] =  location.lon                    
                 data = {
                     'has_next': page.has_next,
                     'projects': projects_final
@@ -242,7 +260,12 @@ class ProjectsResource(Resource):
                 sponsors.append(sponsor.id)
             projects_final[i]['sponsors'] = sponsors 
         for i, project in enumerate(projects):
-            projects_final[i]['status'] = project.status.name  
+            projects_final[i]['status'] = project.status.name
+        for i, project in enumerate(projects):
+            location = Location.query.filter(Location.project_id == project.id).first()
+            projects_final[i]['location'][0]['country'] =  location.country
+            projects_final[i]['location'][0]['latitude'] =  location.lat
+            projects_final[i]['location'][0]['longitude'] =  location.lon
         api.logger.info(f"Getting projects: {projects_final}")   
         return marshal(projects_final, project_get_model) , 200
 
@@ -281,6 +304,10 @@ class ProjectsByProjectIdResource(Resource):
         project['hashtags'] = hashtags_name
         project['overseers'] = overseer_ids
         project['sponsors'] = sponsors_ids
+        location = Location.query.filter(Location.project_id == result.id).first()
+        project['location'][0]['country'] =  location.country
+        project['location'][0]['latitude'] =  location.lat
+        project['location'][0]['longitude'] =  location.lon
         api.logger.info(f"Getting project: {project}")
         return  marshal(project, project_get_model) , 200
 

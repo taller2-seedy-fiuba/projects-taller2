@@ -7,7 +7,7 @@ from flask_restx import Namespace, Resource
 from flask_restx import Model, fields, marshal
 from projects.namespaces.sponsor_ns.models import sponsor_assigned_model
 from projects.namespaces.project_ns.models import project_not_found_model, project_get_model
-from projects.model import Project, Sponsor, DB
+from projects.model import Project, Sponsor, DB, Location
 from projects.exceptions import ProjectNotFound, SponsorNotFound
 
 
@@ -95,6 +95,11 @@ class SponsorResource(Resource):
             for sponsor in project.sponsors:
                 sponsors.append(sponsor.id)
             projects_final[i]['sponsors'] = sponsors
+        for i, project in enumerate(projects):
+            location = Location.query.filter(Location.project_id == project.id).first()
+            projects_final[i]['location'][0]['country'] =  location.country
+            projects_final[i]['location'][0]['latitude'] =  location.lat
+            projects_final[i]['location'][0]['longitude'] =  location.lon            
         api.logger.info(f"Returning projects: {projects_final} for sponsor: {user_id}")                
         return projects_final, 200
 

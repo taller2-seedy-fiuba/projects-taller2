@@ -65,6 +65,8 @@ class Project(DB.Model):
 class Location(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
     country = DB.Column(DB.String)
+    lat = DB.Column(DB.Float)
+    lon = DB.Column(DB.Float)
     point = DB.Column(Geography(geometry_type='POINT', srid=4326))
     project_id = DB.Column(DB.Integer, DB.ForeignKey('project.id'))
     

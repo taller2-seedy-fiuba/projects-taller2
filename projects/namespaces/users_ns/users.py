@@ -1,6 +1,6 @@
 """Project namespace."""
 from datetime import datetime
-from projects.model import Project, DB, Image, Hashtag
+from projects.model import Project, DB, Image, Hashtag, Location
 
 from flask_restx import Namespace, Resource,  marshal
 
@@ -55,6 +55,11 @@ class ProjectsByUserIdResource(Resource):
             sponsors = []
             for sponsor in project.sponsors:
                 sponsors.append(sponsor.id)
-            projects_final[i]['sponsors'] = sponsors                         
+            projects_final[i]['sponsors'] = sponsors    
+        for i, project in enumerate(projects):
+            location = Location.query.filter(Location.project_id == project.id).first()
+            projects_final[i]['location'][0]['country'] =  location.country
+            projects_final[i]['location'][0]['latitude'] =  location.lat
+            projects_final[i]['location'][0]['longitude'] =  location.lon                                 
         return projects_final , 200
 
