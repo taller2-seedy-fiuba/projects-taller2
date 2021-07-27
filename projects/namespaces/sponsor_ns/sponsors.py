@@ -161,11 +161,13 @@ class SponsorResource(Resource):
         if not favorites:
             api.logger.info(f"Not projects were saved as favorite by sponsor: {user_id}")
             return []
-        projects_id = [fav.id for fav in favorites]
+        projects_id = [fav.project_id for fav in favorites]
+        api.logger.info(f"Ids for favorite projects found for sponsor: {user_id} are: {projects_id}")                
         projects_final = []
         projects = []
         for project_id in projects_id:
             projects.append(Project.query.filter(Project.id == project_id).first())
+        api.logger.info(f"Favorite projects found for sponsor: {user_id} are: {projects}")                
         for i, project in enumerate(projects):
             url_images = []
             for image in project.images:
