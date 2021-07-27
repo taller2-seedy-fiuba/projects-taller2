@@ -64,7 +64,7 @@ class FavProjectResource(Resource):
         sponsor = Sponsor.query.filter(Sponsor.id == user_id).first()
         if sponsor is None:
             sponsor = Sponsor(id=user_id)
-        if not bool(sponsor.favorites)  or project_id not in [fav.id  for fav in sponsor.favorites]:
+        if not bool(sponsor.favorites)  or project_id not in [fav.project_id  for fav in sponsor.favorites]:
             sponsor.favorites.append(Favorite(sponsor_id=user_id, project_id=project_id))
         else:
             for i, fav in enumerate(sponsor.favorites):
