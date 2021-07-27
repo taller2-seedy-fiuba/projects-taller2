@@ -45,7 +45,7 @@ class AssignSponsorResource(Resource):
         api.logger.info(f"Sponsor: {user_id} assigned to project: {project_id} successfully")
         return result, 200
 
-@api.route('/<user_id>/projects/<int:project_id>/fav')
+@api.route('/<user_id>/projects/<int:project_id>/favorite')
 @api.param('project_id', 'The project unique identifier')
 @api.param('user_id', 'The sponsor unique identifier')
 class FavProjectResource(Resource):
