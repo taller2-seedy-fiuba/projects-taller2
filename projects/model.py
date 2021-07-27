@@ -3,9 +3,11 @@ from uuid import uuid4
 from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import UUIDType
+from geoalchemy2 import Geography
 
 
-DB = SQLAlchemy()
+
+DB = SQLAlchemy(session_options={"autoflush": False})
 
 project_overseer_association_table = DB.Table('project_overseer_association', DB.Model.metadata,
     DB.Column('project_id', DB.Integer, DB.ForeignKey('project.id')),
@@ -47,17 +49,27 @@ class Project(DB.Model):
         secondary=project_sponsor_association_table,
         back_populates="favorites")
     end_date = DB.Column(DB.DateTime)
-    location = DB.Column(DB.String) #revisar formato
+    location = DB.relationship('Location', backref='project', lazy=True)
     user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
-    status = DB.Column(DB.Enum(ProjectStatus, name="project_status"), default=ProjectStatus.initialized)
+    status = DB.Column(DB.Enum(ProjectStatus), default=ProjectStatus.initialized.value)
     creation_date = DB.Column(DB.DateTime)
     stages = DB.relationship("Stage", backref="project", lazy=True)
+    wallet_id = DB.Column(DB.String)
     #TODO: Revisar otros.
 
     def update_from_dict(self, **kwargs):
         for field, value in kwargs.items():
             setattr(self, field, value)
+
+class Location(DB.Model):
+    id = DB.Column(DB.Integer, primary_key=True)
+    country = DB.Column(DB.String)
+    lat = DB.Column(DB.Float)
+    lon = DB.Column(DB.Float)
+    point = DB.Column(Geography(geometry_type='POINT', srid=4326))
+    project_id = DB.Column(DB.Integer, DB.ForeignKey('project.id'))
+    
 
 class Stage(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)

@@ -1,7 +1,9 @@
 """Project api."""
 import json
+import logging
 from datetime import datetime
-from projects.model import Project, DB, Image, Hashtag, Video, Stage, ProjectStatus
+from sqlalchemy import func
+from projects.model import Project, DB, Image, Hashtag, Video, Stage, ProjectStatus, Location, Overseer
 
 from flask_restx import Namespace, Resource, reqparse, marshal
 from projects.namespaces.project_ns.models import *
@@ -10,6 +12,8 @@ from projects.namespaces.utils.project_query_params import ProjectQueryParams
 from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound, OverseerNotFound
 
 from projects.exceptions import ParamDoesNotAllowedException, ProjectNotFound
+
+logging.basicConfig(level=logging.INFO)
 
 api = Namespace("Projects", description="CRUD operations for projects.")
 
@@ -21,6 +25,9 @@ api.models[video_model.name] = video_model
 api.models[hashtag_model.name] = hashtag_model
 api.models[project_not_found_model.name] = project_not_found_model
 api.models[new_stage_model.name] = new_stage_model
+api.models[location_model.name] = location_model
+api.models[user_new_project_model.name] = user_new_project_model
+
 
 
 query_params = ProjectQueryParams()
@@ -71,10 +78,32 @@ class ProjectsResource(Resource):
             DB.session.add(new_stage)
 
         data['stages'] = stages
+        point = f"POINT({data['location']['latitude']} {data['location']['longitude']})"
+        location_data = {
+            'country' : data['location']['country'],
+            'point': point,
+            'lat': data['location']['latitude'],
+            'lon' : data['location']['longitude'],
+        }
+        location = Location(**location_data)
+        data['location'] = [location]
+        DB.session.add(location)
+
+        overseers = []
+        overseer: int
+        for overseer_id in data["overseers"]:
+            overseer = Overseer.query.filter(Overseer.id == overseer_id).first()
+            if overseer is None:
+                overseer = Overseer(id=overseer_id)
+            overseers.append(overseer)
+            DB.session.add(overseer)
+        data['overseers'] = overseers
 
         new_project = Project(**data)
         DB.session.add(new_project)
         DB.session.commit()
+        api.logger.info(f"Project created successfully")
+
         return new_project
 
     @api.doc('get_projects')
@@ -87,9 +116,84 @@ class ProjectsResource(Resource):
         query = Project.query
         if params:
             if "project_type" in params.keys():
-                query = query.filter(Project.project_type == params['project_type'] )
+                query = query.filter( func.lower(Project.project_type) ==  func.lower(params['project_type']))
             elif 'status' in params.keys():
                 query = query.filter(Project.status == params['status'])
+            elif 'hashtag' in params.keys():
+                projects = []
+                hashtags = Hashtag.query.filter(func.lower(Hashtag.name) == func.lower(params['hashtag']))
+                for hashtag in hashtags:
+                    projects.append(query.filter(Project.id == hashtag.project_id).first())
+                projects_final = []
+                for project in projects:
+                    url_images = []
+                    for image in project.images:
+                        url_images.append(image.url)
+                    project_dto = marshal(project, project_get_model)
+                    project_dto['images'] = url_images
+                    projects_final.append(project_dto)
+                for i, project in enumerate(projects):
+                    url_videos = []
+                    for video in project.videos:
+                        url_videos.append(video.url)
+                    projects_final[i]['videos'] = url_videos
+                for i, project in enumerate(projects):
+                    url_hashtags = []
+                    for hashtag in project.hashtags:
+                        url_hashtags.append(hashtag.name)
+                    projects_final[i]['hashtags'] = url_hashtags     
+                for i, project in enumerate(projects):
+                    overseer_ids = []
+                    for overseer in project.overseers:
+                        overseer_ids.append(overseer.id)
+                    projects_final[i]['overseers'] = overseer_ids
+                for i, project in enumerate(projects):
+                    sponsors = []
+                    for sponsor in project.sponsors:
+                        sponsors.append(sponsor.id)
+                    projects_final[i]['sponsors'] = sponsors 
+                for i, project in enumerate(projects):
+                    for status in project.sponsors:
+                        sponsors.append(sponsor.id)
+                        projects_final[i]['sponsors'] = sponsors
+                for i, project in enumerate(projects):
+                    projects_final[i]['status'] = project.status.name                     
+                api.logger.info(f"Getting projects: {projects_final}")
+                for i, project in enumerate(projects):
+                    location = Location.query.filter(Location.project_id == project.id).first()
+                    projects_final[i]['location'][0]['country'] =  location.country
+                    projects_final[i]['location'][0]['latitude'] =  location.lat
+                    projects_final[i]['location'][0]['longitude'] =  location.lon                   
+                api.logger.info(f"Getting projects: {projects_final}")      
+                return marshal(projects_final, project_get_model) , 200
+            elif 'center_x' in params.keys() and 'center_y' in params.keys() and 'radius' in params.keys():
+                locations = Location.query.filter(func.ST_PointInsideCircle(Location.point, params['center_x'], params['center_y'], params['radius']))
+                projects_id = [location.project_id for location in locations]
+                projects = [query.filter(Project.project_id == id ) for id in projects_id]
+                projects_final = []
+                for project in projects:
+                    url_images = []
+                    for image in project.images:
+                        url_images.append(image.url)
+                    project_dto = marshal(project, project_get_model)
+                    project_dto['images'] = url_images
+                    projects_final.append(project_dto)
+                for i, project in enumerate(projects):
+                    url_videos = []
+                    for video in project.videos:
+                        url_videos.append(video.url)
+                    projects_final[i]['videos'] = url_videos
+                for i, project in enumerate(projects):
+                    url_hashtags = []
+                    for hashtag in project.hashtags:
+                        url_hashtags.append(hashtag.name)
+                        projects_final[i]['hashtags'] = url_hashtags  
+                for i, project in enumerate(projects):
+                    location = Location.query.filter(Location.project_id == project.id).first()
+                    projects_final[i]['location'][0]['country'] =  location.country
+                    projects_final[i]['location'][0]['latitude'] =  location.lat
+                    projects_final[i]['location'][0]['longitude'] =  location.lon                           
+                return marshal(projects_final, project_get_model) , 200            
             elif "page" not in params.keys() and not "page_size" not in params.keys():
                 raise ParamDoesNotAllowedException("Invalid param")
             if "page" in params.keys() and "page_size" in params.keys():
@@ -110,10 +214,17 @@ class ProjectsResource(Resource):
                         url_videos.append(video.url)
                     projects_final[i]['videos'] = url_videos
                 for i, project in enumerate(projects):
+                    projects_final[i]['status'] = project.status.name                    
+                for i, project in enumerate(projects):
                     url_hashtags = []
                     for hashtag in project.hashtags:
                         url_hashtags.append(hashtag.name)
-                    projects_final[i]['hashtags'] = url_hashtags
+                        projects_final[i]['hashtags'] = url_hashtags
+                for i, project in enumerate(projects):
+                    location = Location.query.filter(Location.project_id == project.id).first()
+                    projects_final[i]['location'][0]['country'] =  location.country
+                    projects_final[i]['location'][0]['latitude'] =  location.lat
+                    projects_final[i]['location'][0]['longitude'] =  location.lon                    
                 data = {
                     'has_next': page.has_next,
                     'projects': projects_final
@@ -137,7 +248,25 @@ class ProjectsResource(Resource):
             url_hashtags = []
             for hashtag in project.hashtags:
                 url_hashtags.append(hashtag.name)
-                projects_final[i]['hashtags'] = url_hashtags     
+            projects_final[i]['hashtags'] = url_hashtags     
+        for i, project in enumerate(projects):
+            overseer_ids = []
+            for overseer in project.overseers:
+                overseer_ids.append(overseer.id)
+            projects_final[i]['overseers'] = overseer_ids
+        for i, project in enumerate(projects):
+            sponsors = []
+            for sponsor in project.sponsors:
+                sponsors.append(sponsor.id)
+            projects_final[i]['sponsors'] = sponsors 
+        for i, project in enumerate(projects):
+            projects_final[i]['status'] = project.status.name
+        for i, project in enumerate(projects):
+            location = Location.query.filter(Location.project_id == project.id).first()
+            projects_final[i]['location'][0]['country'] =  location.country
+            projects_final[i]['location'][0]['latitude'] =  location.lat
+            projects_final[i]['location'][0]['longitude'] =  location.lon
+        api.logger.info(f"Getting projects: {projects_final}")   
         return marshal(projects_final, project_get_model) , 200
 
   
@@ -152,6 +281,7 @@ class ProjectsByProjectIdResource(Resource):
         """Get Project by Id"""
         result = Project.query.filter(Project.id == project_id).first()
         if not result:
+            api.logger.info(f"No project by id {project_id}")
             return marshal({'message': "No project by that id was found."}, project_not_found_model), 404
         project = marshal(result, project_get_model)
         images_url = []
@@ -163,14 +293,27 @@ class ProjectsByProjectIdResource(Resource):
         hashtags_name = []
         for hashtag in result.hashtags:
             hashtags_name.append(hashtag.name)
+        overseer_ids = []
+        for overseer in result.overseers:
+            overseer_ids.append(overseer.id)
+        sponsors_ids = []
+        for sponsor in result.sponsors:
+            sponsors_ids.append(sponsor.id)                        
         project['images'] = images_url
         project['videos'] = videos_url
         project['hashtags'] = hashtags_name
-        return project, 200
+        project['overseers'] = overseer_ids
+        project['sponsors'] = sponsors_ids
+        location = Location.query.filter(Location.project_id == result.id).first()
+        project['location'][0]['country'] =  location.country
+        project['location'][0]['latitude'] =  location.lat
+        project['location'][0]['longitude'] =  location.lon
+        api.logger.info(f"Getting project: {project}")
+        return  marshal(project, project_get_model) , 200
 
     @api.response(model=project_get_model, code=200, description="Get project by id successfully")
     @api.response(model=project_not_found_model, code=404, description="No project by that id was found")
-    @api.expect(new_project_model)
+    @api.expect(user_new_project_model)
     def put(self, project_id):
             project = Project.query.filter(Project.id == project_id).first()
             if not project:
@@ -181,7 +324,14 @@ class ProjectsByProjectIdResource(Resource):
             project.description = data['description']
 
             project.end_date = datetime.strptime(data["end_date"], "%Y-%m-%d")
-            project.location = data['location']       
+            point = f"POINT({data['location']['latitude']} {data['location']['longitude']})"
+            location_data = {
+                'country' : data['location']['country'],
+                'point': point
+            }
+            location = Location(**location_data)
+            data['location'] = [location]
+            DB.session.add(location)
             project.status = data['status'] 
 
             for image in project.images:
@@ -244,6 +394,8 @@ class ProjectsByProjectIdResource(Resource):
                 DB.session.add(new_stage)
             data["stages"] = stages
             project.stages = stages
+
+
             DB.session.add(project)
             DB.session.commit()
             result = marshal(project, project_get_model)
@@ -259,4 +411,5 @@ class ProjectsByProjectIdResource(Resource):
             result['hashtags'] = images_url    
             result['images'] = images_url
             result['videos'] = videos_url
+            api.logger.info(f"Project: {project_id} updated")
             return result, 200           

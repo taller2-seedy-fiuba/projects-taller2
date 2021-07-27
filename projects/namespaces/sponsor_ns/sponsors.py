@@ -1,13 +1,17 @@
 """Sponsor namespace."""
 
+import logging
+
 from flask_restx import Namespace, Resource
 
 from flask_restx import Model, fields, marshal
 from projects.namespaces.sponsor_ns.models import sponsor_assigned_model
 from projects.namespaces.project_ns.models import project_not_found_model, project_get_model
-from projects.model import Project, Sponsor, DB
+from projects.model import Project, Sponsor, DB, Location
 from projects.exceptions import ProjectNotFound, SponsorNotFound
 
+
+logging.basicConfig(level=logging.INFO)
 
 api = Namespace("Sponsor", description="Actions related to Sponsor.")
 
@@ -24,9 +28,11 @@ class AssignSponsorResource(Resource):
     @api.response(model=project_not_found_model, code=404, description="No project by that id was found")
     def put(self, user_id, project_id):
         """Assign Sponsor to project"""
+        api.logger.info(f"Trying to set {user_id} as sponsor in project: {project_id}")
         data = api.payload
         project = Project.query.filter(Project.id == project_id).first()
         if project is None:
+            api.logger.error(f"No project was found by id: {project_id}")
             raise ProjectNotFound
         sponsor = Sponsor.query.filter(Sponsor.id == user_id).first()
         if sponsor is None:
@@ -36,6 +42,7 @@ class AssignSponsorResource(Resource):
         DB.session.commit()
         result = marshal(sponsor, sponsor_assigned_model)
         result['project_id'] = project.id
+        api.logger.info(f"Sponsor: {user_id} assigned to project: {project_id} successfully")
         return result, 200
 
 @api.route('/<user_id>/projects')
@@ -49,12 +56,16 @@ class SponsorResource(Resource):
     @api.doc('Get projects in which user is Sponsor')
     def get(self, user_id):
         """Get all projects assigned to sponsor"""
+
+        api.logger.info(f"Getting projects for sponsor: {user_id}...")
         data = api.payload
         sponsor = Sponsor.query.filter(Sponsor.id == user_id).first()
         if sponsor is None:
+            api.logger.error(f"Not sponsor was found by id: {user_id}")
             return marshal({'message': "No Sponsor by that id was found."}, project_not_found_model ), 404
         projects = sponsor.projects
         if not projects:
+            api.logger.info(f"Not projects assigned to sponsor: {user_id}")
             return projects, 204
         projects_final = []
         for project in projects:
@@ -69,19 +80,30 @@ class SponsorResource(Resource):
             for video in project.videos:
                 url_videos.append(video.url)
             projects_final[i]['videos'] = url_videos
-
+        for i, project in enumerate(projects):
+            hashtags = []
+            for hashtag in project.hashtags:
+                hashtags.append(hashtag.name)
+            projects_final[i]['hashtags'] = hashtags            
+        for i, project in enumerate(projects):
+            overseers = []
+            for overseer in project.overseers:
+                overseers.append(overseer.id)
+            projects_final[i]['overseers'] = overseers
+        for i, project in enumerate(projects):
+            sponsors = []
+            for sponsor in project.sponsors:
+                sponsors.append(sponsor.id)
+            projects_final[i]['sponsors'] = sponsors
+        for i, project in enumerate(projects):
+            location = Location.query.filter(Location.project_id == project.id).first()
+            projects_final[i]['location'][0]['country'] =  location.country
+            projects_final[i]['location'][0]['latitude'] =  location.lat
+            projects_final[i]['location'][0]['longitude'] =  location.lon            
+        api.logger.info(f"Returning projects: {projects_final} for sponsor: {user_id}")                
         return projects_final, 200
 
 
-@api.errorhandler(ProjectNotFound)
-def handle_ProjectNotFound(_exception):
-    """Handle project not found exception."""
-    return {'message': "No project by that id was found."}, 404
-
-@api.errorhandler(SponsorNotFound)
-def handle_SponsorNotFound(_exception):
-    """Handle Sponsor not found exception."""
-    return {'message': "No Sponsor by that id was found."}, 404
 
 
 

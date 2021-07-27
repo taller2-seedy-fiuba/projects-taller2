@@ -37,8 +37,17 @@ new_stage_model = Model(
     },
 )
 
-new_project_model = Model(
-    "Project model",
+location_model = Model(
+    "Location of project Model",
+    {
+        "country" : fields.String(required=False, description="Country of project"),
+        "latitude": fields.Float(required=False, description="Latitude of project"),
+        "longitude": fields.Float(required=False, description="Longitude of project")
+    }
+)
+
+user_new_project_model = Model(
+    "User new project model",
     {
     "title": fields.String(required=True, description="Project title."),
      "description": fields.String(required=True, description="Project Description"),
@@ -47,12 +56,20 @@ new_project_model = Model(
      "images" : fields.List(fields.String,required=False, description="List of images URLs"),
      "videos" : fields.List(fields.String,required=False, description="List of videos URLs"),
      "end_date" : fields.Date(required=False, description="Date when project ends"),
-     "location" : fields.String(required=False, description="Project location."),
+     "location" : fields.Nested(location_model, required=False),
      "user_id" : fields.String(required=True, description="Owner of project"),
      "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
      "creation_date" : fields.Date(required=False, description="Creation date"),
      "status" : fields.String(required=False, enum=["initialized", "pending", "in_progres", "ended"], description="Project status"),
-     "stages" : fields.List(fields.Nested(new_stage_model), required=True)
+     "stages" : fields.List(fields.Nested(new_stage_model), required=True),
+    }
+)
+
+new_project_model = Model.inherit(
+    "Project model", user_new_project_model,
+    {
+        "overseers": fields.List(fields.String, required=True, description="List Ids for oveseers"),
+        "wallet_id" : fields.String(required=True, description="Wallet id associated to project")
     }
 )
 
@@ -62,8 +79,8 @@ project_put_model = Model.inherit('Project put Dto', new_project_model, {
 
 project_get_model = Model.inherit('Project get Dto', new_project_model, {
     "id": fields.Integer(readonly=True, description="Id for this type"),
-    "overseers" : fields.List(fields.Nested(overseer_assigned_model)),
-    "sponsors" : fields.List(fields.Nested(sponsor_model))
+    "overseers" : fields.List(fields.String),
+    "sponsors" : fields.List(fields.String)
 
 } )
 

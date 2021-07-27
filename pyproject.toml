@@ -16,6 +16,7 @@ psycopg2-binary = "^2.8.6"
 Flask-Migrate = "^2.7.0"
 SQLAlchemy = "<1.4.0"
 flask-restx = "^0.2.0"
+GeoAlchemy2 = "0.8.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
