@@ -44,10 +44,6 @@ class Project(DB.Model):
         "Sponsor",
         secondary=project_sponsor_association_table,
         back_populates="projects")
-    favs = DB.relationship(
-        "Sponsor",
-        secondary=project_sponsor_association_table,
-        back_populates="favorites")
     end_date = DB.Column(DB.DateTime)
     location = DB.relationship('Location', backref='project', lazy=True)
     user_id = DB.Column(DB.String)
@@ -125,7 +121,11 @@ class Sponsor(DB.Model):
         "Project",
         secondary=project_sponsor_association_table,
         back_populates="sponsors")
-    favorites = DB.relationship(
-        "Project",
-        secondary=project_sponsor_association_table,
-        back_populates="favs")
+    favorites = DB.relationship("Favorite", backref="Sponsor", lazy=True)
+
+class Favorite(DB.Model):
+    """Favorite projects for sponsors """
+    id = DB.Column(DB.Integer, primary_key=True)
+    sponsor_id = DB.Column(DB.String, DB.ForeignKey('sponsor.id'))
+    project_id = DB.Column(DB.Integer)
+
