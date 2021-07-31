@@ -39,7 +39,7 @@ get_user_project_model = Model(
      "location" : fields.String(required=False, description="Project location."),
      "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
      "creation_date" : fields.Date(required=False, description="Creation date"),
-     "status" : fields.String(required=False, description="Project status")
+     "project_status" : fields.String(required=False, description="Project status")
     }
 )
 

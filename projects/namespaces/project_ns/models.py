@@ -36,7 +36,13 @@ new_stage_model = Model(
         "number" : fields.Integer(required=True, description="Ordinal number of the stage")
     },
 )
-
+stage_updated_model = Model.inherit(
+    "stage updated",
+    new_stage_model,
+    {
+        "status" : fields.String(required=False, enum=["pending", "ended"], description="Status of sage")
+    }
+)
 location_model = Model(
     "Location of project Model",
     {
@@ -60,7 +66,7 @@ user_new_project_model = Model(
      "user_id" : fields.String(required=True, description="Owner of project"),
      "target_amount" : fields.Integer(required=True, description="Money needed for the project"),
      "creation_date" : fields.Date(required=False, description="Creation date"),
-     "status" : fields.String(required=False, enum=["initialized", "pending", "in_progres", "ended"], description="Project status"),
+     "project_status" : fields.String(required=False, enum=["CREATED", "FUNDING", "IN_PROGRESS", "COMPLETED", "CANCELED", "NOT_CREATED", "PENDING"], description="Project status"),
      "stages" : fields.List(fields.Nested(new_stage_model), required=True),
     }
 )
@@ -99,3 +105,23 @@ project_not_found_model = Model(
     }
 )
 
+update_stage_model = Model(
+    "Model to udate status of stages",
+    {
+         "status" : fields.String(required=False, enum=["pending", "ended"], description="Status of sage"),
+    }
+) 
+
+stages_updated_model = Model(
+    "Stages updated model",
+    {
+        "stages" : fields.List(fields.Nested(stage_updated_model), description="Stages updated")
+    }
+)
+
+update_status_model = Model(
+    "Update status of model",
+    {
+     "project_status" : fields.String(required=False, enum=["CREATED", "FUNDING", "IN_PROGRESS", "COMPLETED", "CANCELED", "NOT_CREATED", "PENDING"], description="Project status"),
+    }
+)

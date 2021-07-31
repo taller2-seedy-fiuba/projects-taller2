@@ -27,8 +27,9 @@ api.models[project_not_found_model.name] = project_not_found_model
 api.models[new_stage_model.name] = new_stage_model
 api.models[location_model.name] = location_model
 api.models[user_new_project_model.name] = user_new_project_model
-
-
+api.models[stages_updated_model.name] = stages_updated_model
+api.models[update_stage_model.name] = update_stage_model
+api.models[update_status_model.name] = update_status_model
 
 query_params = ProjectQueryParams()
 query_params.add_arguments()
@@ -98,6 +99,7 @@ class ProjectsResource(Resource):
             overseers.append(overseer)
             DB.session.add(overseer)
         data['overseers'] = overseers
+        data['status'] = ProjectStatus.pending.name
 
         new_project = Project(**data)
         DB.session.add(new_project)
@@ -117,8 +119,8 @@ class ProjectsResource(Resource):
         if params:
             if "project_type" in params.keys():
                 query = query.filter( func.lower(Project.project_type) ==  func.lower(params['project_type']))
-            elif 'status' in params.keys():
-                query = query.filter(Project.status == params['status'])
+            elif 'project_status' in params.keys():
+                query = query.filter(Project.project_status == params['project_status'])
             elif 'hashtag' in params.keys():
                 projects = []
                 hashtags = Hashtag.query.filter(func.lower(Hashtag.name) == func.lower(params['hashtag']))
@@ -157,7 +159,7 @@ class ProjectsResource(Resource):
                         sponsors.append(sponsor.id)
                         projects_final[i]['sponsors'] = sponsors
                 for i, project in enumerate(projects):
-                    projects_final[i]['status'] = project.status.name                     
+                    projects_final[i]['project_status'] = project.project_status.name                     
                 api.logger.info(f"Getting projects: {projects_final}")
                 for i, project in enumerate(projects):
                     location = Location.query.filter(Location.project_id == project.id).first()
@@ -187,7 +189,9 @@ class ProjectsResource(Resource):
                     url_hashtags = []
                     for hashtag in project.hashtags:
                         url_hashtags.append(hashtag.name)
-                        projects_final[i]['hashtags'] = url_hashtags  
+                        projects_final[i]['hashtags'] = url_hashtags 
+                for i, project in enumerate(projects):
+                    projects_final[i]['project_status'] = project.project_status.name   
                 for i, project in enumerate(projects):
                     location = Location.query.filter(Location.project_id == project.id).first()
                     projects_final[i]['location'][0]['country'] =  location.country
@@ -214,7 +218,7 @@ class ProjectsResource(Resource):
                         url_videos.append(video.url)
                     projects_final[i]['videos'] = url_videos
                 for i, project in enumerate(projects):
-                    projects_final[i]['status'] = project.status.name                    
+                    projects_final[i]['project_status'] = project.project_status.name                    
                 for i, project in enumerate(projects):
                     url_hashtags = []
                     for hashtag in project.hashtags:
@@ -260,7 +264,7 @@ class ProjectsResource(Resource):
                 sponsors.append(sponsor.id)
             projects_final[i]['sponsors'] = sponsors 
         for i, project in enumerate(projects):
-            projects_final[i]['status'] = project.status.name
+            projects_final[i]['project_status'] = project.project_status.name
         for i, project in enumerate(projects):
             location = Location.query.filter(Location.project_id == project.id).first()
             projects_final[i]['location'][0]['country'] =  location.country
@@ -308,6 +312,7 @@ class ProjectsByProjectIdResource(Resource):
         project['location'][0]['country'] =  location.country
         project['location'][0]['latitude'] =  location.lat
         project['location'][0]['longitude'] =  location.lon
+        project['project_status'] =  result.project_status.name
         api.logger.info(f"Getting project: {project}")
         return  marshal(project, project_get_model) , 200
 
@@ -332,7 +337,7 @@ class ProjectsByProjectIdResource(Resource):
             location = Location(**location_data)
             data['location'] = [location]
             DB.session.add(location)
-            project.status = data['status'] 
+            project.project_status = data['project_status'] 
 
             for image in project.images:
                 DB.session.delete(image)
@@ -412,4 +417,51 @@ class ProjectsByProjectIdResource(Resource):
             result['images'] = images_url
             result['videos'] = videos_url
             api.logger.info(f"Project: {project_id} updated")
-            return result, 200           
+            return result, 200    
+
+           
+@api.route("/<int:project_id>/stage/<int:stage_number>")
+@api.response(model=project_get_model, code=200, description="Status of stage updated successfully")
+@api.response(model=project_not_found_model, code=404, description="No project by that id was found")
+@api.param('project_id', 'The project unique identifier')
+@api.param('stage_number', 'The number of stage to be updated')
+class UpdateStageResource(Resource):
+    @api.expect(update_stage_model)
+    @api.doc('Update stages of project')
+    def patch(self, project_id, stage_number):
+        """Update stages"""
+        data = api.payload
+        result = Project.query.filter(Project.id == project_id).first()
+        if not result:
+            api.logger.info(f"No project by id {project_id}")
+            return marshal({'message': "No project by that id was found."}, project_not_found_model), 404
+        stages = result.stages 
+        for stage in stages:
+            if stage.number == stage_number:
+                stage.status = data["status"]
+                DB.session.add(stage)
+                DB.session.commit()
+        result = marshal(stages, stage_updated_model)
+        for i, stage in enumerate(stages):      
+            result[i]['status'] = stage.status.name
+        return result , 200
+
+@api.route("/<int:project_id>/status")
+@api.response(model=project_get_model, code=200, description="Status of project updated successfully")
+@api.response(model=project_not_found_model, code=404, description="No project by that id was found")
+@api.param('project_id', 'The project unique identifier')
+class UpdateStatusResource(Resource):
+    @api.expect(update_status_model)
+    @api.doc('update status of project')
+    def patch(self, project_id):
+        """Update status"""
+        data = api.payload
+        project = Project.query.filter(Project.id == project_id).first()
+        if not project:
+            api.logger.info(f"No project by id {project_id}")
+            return marshal({'message': "No project by that id was found."}, project_not_found_model), 404
+        project.project_status = data["project_status"] 
+        DB.session.add(project)
+        DB.session.commit()
+        return  marshal(project, project_get_model) , 200
+
