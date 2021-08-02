@@ -25,6 +25,15 @@ class ProjectStatus(Enum):
     ended = 3,
     pending = 4
 
+class ProjectStatus2(Enum):
+    CREATED = 1,
+    FUNDING = 2,
+    IN_PROGRESS = 3,
+    COMPLETED = 4,
+    CANCELED = 5,
+    NOT_CREATED = 6,
+    PENDING = 7
+
 class Project(DB.Model):
     __tablename__ = 'project'
 
@@ -49,6 +58,8 @@ class Project(DB.Model):
     user_id = DB.Column(DB.String)
     target_amount = DB.Column(DB.BigInteger)
     status = DB.Column(DB.Enum(ProjectStatus), default=ProjectStatus.initialized.value)
+    project_status = DB.Column(DB.Enum(ProjectStatus2), default=ProjectStatus2.CREATED.value)
+
     creation_date = DB.Column(DB.DateTime)
     stages = DB.relationship("Stage", backref="project", lazy=True)
     wallet_id = DB.Column(DB.String)

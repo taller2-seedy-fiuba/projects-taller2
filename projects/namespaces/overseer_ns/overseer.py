@@ -98,6 +98,8 @@ class OverseerResource(Resource):
                 sponsors.append(sponsor.id)
             projects_final[i]['sponsors'] = sponsors  
         for i, project in enumerate(projects):
+            projects_final[i]['project_status'] = project.project_status.name  
+        for i, project in enumerate(projects):
             location = Location.query.filter(Location.project_id == project.id).first()
             projects_final[i]['location'][0]['country'] =  location.country
             projects_final[i]['location'][0]['latitude'] =  location.lat

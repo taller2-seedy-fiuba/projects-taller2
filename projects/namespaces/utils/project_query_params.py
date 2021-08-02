@@ -18,7 +18,7 @@ class ProjectQueryParams:
         )
 
         self.projects_parser.add_argument(
-            "status",
+            "project_status",
             type=str,
             help="status of project",
             store_missing=False
