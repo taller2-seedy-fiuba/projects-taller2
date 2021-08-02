@@ -169,9 +169,12 @@ class ProjectsResource(Resource):
                 api.logger.info(f"Getting projects: {projects_final}")      
                 return marshal(projects_final, project_get_model) , 200
             elif 'center_x' in params.keys() and 'center_y' in params.keys() and 'radius' in params.keys():
-                locations = Location.query.filter(func.ST_PointInsideCircle(Location.point, params['center_x'], params['center_y'], params['radius']))
-                projects_id = [location.project_id for location in locations]
-                projects = [query.filter(Project.project_id == id ) for id in projects_id]
+                center = func.ST_GeographyFromText(
+                    f"POINT({params['center_x']} {params['center_y']})", srid=4326
+                )
+                projects = query.filter(
+                    func.ST_DWithin(Location.point, center, params['radius'] * 1000)
+                ).all()
                 projects_final = []
                 for project in projects:
                     url_images = []
