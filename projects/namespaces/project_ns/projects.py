@@ -105,8 +105,34 @@ class ProjectsResource(Resource):
         DB.session.add(new_project)
         DB.session.commit()
         api.logger.info(f"Project created successfully")
+        result = marshal(new_project, project_get_model)
+        images_url = []
+        for image in new_project.images:
+            images_url.append(image.url)
+        videos_url = []
+        for video in new_project.videos:
+            videos_url.append(video.url)
+        hashtags_name = []
+        for hashtag in new_project.hashtags:
+            hashtags_name.append(hashtag.name)
+        overseer_ids = []
+        for overseer in new_project.overseers:
+            overseer_ids.append(overseer.id)
+        sponsors_ids = []
+        for sponsor in new_project.sponsors:
+            sponsors_ids.append(sponsor.id)                        
+        result['images'] = images_url
+        result['videos'] = videos_url
+        result['hashtags'] = hashtags_name
+        result['overseers'] = overseer_ids
+        result['sponsors'] = sponsors_ids
+        location = Location.query.filter(Location.project_id == new_project.id).first()
+        result['location'][0]['country'] =  location.country
+        result['location'][0]['latitude'] =  location.lat
+        result['location'][0]['longitude'] =  location.lon
+        result['project_status'] =  new_project.project_status.name
+        return result
 
-        return new_project
 
     @api.doc('get_projects')
     @api.response(model=project_get_model, code=200, description="Used without pagination")
