@@ -199,7 +199,7 @@ class ProjectsResource(Resource):
                     f"POINT({params['center_x']} {params['center_y']})", srid=4326
                 )
                 projects = query.filter(
-                    func.ST_DWithin(Location.point, center, params['radius'] * 1000)
+                    func.ST_DWithin(Location.point, center, params['radius'])
                 ).all()
                 projects_final = []
                 for project in projects:
