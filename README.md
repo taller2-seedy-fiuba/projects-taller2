@@ -1,6 +1,5 @@
 # app-middle-end
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/JulietaCaceres/projects-taller2?style=flat-square) ![Coverage](coverage-badge.svg)[![Tests](https://github.com/JulietaCaceres/projects-taller2/actions/workflows/tests.yml/badge.svg)](https://github.com/JulietaCaceres/projects-taller2/actions/workflows/tests.yml)
-
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/JulietaCaceres/projects-taller2?style=flat-square) 
 # Descripción
 Este microservicio fue creado para manejar la base de datos de proyectos y exponer una api sobre la cual realizar las siguiente acciones:
 - CRUD de proyectos.
